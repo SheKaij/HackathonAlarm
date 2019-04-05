@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">AlarmClock</string>
+
+    <string name="disable_all_alarms">Disable All Alarms</string>
+</resources>
