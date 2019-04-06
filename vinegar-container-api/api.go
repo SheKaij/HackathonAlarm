@@ -27,6 +27,7 @@ type Device struct {
 type TriggeredDevice struct {
 	Device Device 
 	Defused bool
+	Key *datastore.Key `datastore:"__key__"`
 }
 
 type DeviceWithID struct {
@@ -140,24 +141,47 @@ func defuseHandler(w http.ResponseWriter, r *http.Request) {
 		ctx := appengine.NewContext(r)
 		var tDevices []TriggeredDevice
 		id64, err := strconv.ParseInt(device.Uid, 10, 64)
+		deviceKey := datastore.NewKey(ctx, "Device", "", id64, nil)
 		if err != nil {
 			panic(err)
 		}
-		query := datastore.NewQuery("TriggeredDevice").Filter("Device.__key__ =", id64)
-		// Get the ancestor of the triggered device, it should be an alarm
-		keys, err := query.GetAll(ctx, &tDevices)
-		fmt.Print(tDevices)
+		query := datastore.NewQuery("TriggeredDevice")
+		_, err = query.GetAll(ctx, &tDevices)
 		if err != nil {
 			panic(err)
 		}
-		//var alarm Alarm
-		// If currentTime > alarm.time and currentTime < (alarm.time + maxMinutes)
-		for i, tDevice := range tDevices {
-			tDevice.Defused = true
-			datastore.Put(ctx, keys[i], tDevice)
+		matchingDevices := []TriggeredDevice{}
+		for _, triggeredDevice := range tDevices {
+			if triggeredDevice.Key == deviceKey {
+				matchingDevices = append(matchingDevices, triggeredDevice)
+			}
 		}
-
-		fmt.Fprint(w, "YE BOI")
+		var alarms []Alarm
+		query = datastore.NewQuery("Alarm")
+		_, err = query.GetAll(ctx, &alarms)
+		if err != nil {
+			panic(err)
+		}
+		var matchingAlarm Alarm
+		found := false
+		for _, alarm := range alarms {
+			for _, device := range alarm.Devices {
+				if device.Key == deviceKey {
+					matchingAlarm = alarm
+					found = true
+					break
+				}
+			}
+			if found {
+				break
+			}
+		}
+		if matchingAlarm.Triggered {
+			for _, tDevice := range matchingDevices {
+				tDevice.Defused = true
+				datastore.Put(ctx, tDevice.Key, tDevice)
+			}
+		}
 	}
 }
 
