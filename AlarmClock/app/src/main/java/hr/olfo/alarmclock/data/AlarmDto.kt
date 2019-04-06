@@ -1,5 +1,7 @@
 package hr.olfo.alarmclock.data
 
+import java.util.ArrayList
+
 class AlarmDto {
     var timeH: Int = 0
     var timeM: Int = 0

@@ -23,7 +23,15 @@
         android:layout_height="match_parent"
         android:layout_weight="1"/>
 
-    <Button
+    <TextView
+        android:id="@+id/labelInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="HURRY!"
+        android:textAlignment="center"
+        android:textSize="45sp" />
+
+    <!--<Button
         android:id="@+id/buttonSnooze"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -33,5 +41,5 @@
         android:id="@+id/buttonOff"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Turn off alarm" />
+        android:text="Turn off alarm" />-->
 </LinearLayout>
