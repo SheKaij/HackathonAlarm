@@ -34,6 +34,7 @@ type Alarm struct {
 	TimeH int `json:"timeH"`
 	TimeM int `json:"timeM"`
 	Sequence []string `json:"sequence"`
+	Defused bool `json:"defused"`
 }
 
 type AlarmWithID struct {
@@ -41,6 +42,7 @@ type AlarmWithID struct {
 	TimeH int `json:"timeH"`
 	TimeM int `json:"timeM"`
 	Sequence []string `json:"sequence"`
+	Defused bool `json:"defused"`
 }
 // [END import]
 // [START main_func]
@@ -50,7 +52,6 @@ func main() {
 	http.HandleFunc("/devices", devicesHandler)
 	http.HandleFunc("/defuse", defuseHandler)
 	http.HandleFunc("/register", registerHandler)
-	http.HandleFunc("/state", stateHandler)
 	http.HandleFunc("/alarms", alarmHandler)
 
 	appengine.Main()
@@ -142,27 +143,6 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func stateHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/state" {
-		http.NotFound(w, r)
-		return
-	}
-	// TODO: Fetch current alarm in the DB
-	alarm := Alarm{
-		TimeH: 8,
-		TimeM: 30,
-		Sequence: []string{
-			"ojkj",
-			"kjkjk",
-			"mkjkf" } }
-	alarmState := string(alarm.TimeH) + "lol I don't know man"
-	json, err := json.Marshal(alarmState)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Fprint(w, string(json))
-}
-
 func alarmHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/alarms" {
 		http.NotFound(w, r)
@@ -203,7 +183,8 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 			Uid: strconv.FormatInt(put_key.IntID(), 10),
 			TimeH: alarm.TimeH,
 			TimeM: alarm.TimeM,
-			Sequence: alarm.Sequence}
+			Sequence: alarm.Sequence,
+			Defused: false}
 
 		json, err := json.Marshal(alarmWithID)
 		if err != nil {
@@ -211,6 +192,8 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		fmt.Fprint(w, string(json))
+	case http.MethodPut:
+
 	}
 }
 // [END gae_go111_app]
