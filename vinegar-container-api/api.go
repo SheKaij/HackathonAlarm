@@ -164,7 +164,6 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	switch r.Method {
 	case http.MethodGet:
-		// TODO: Fetch current alarm in the DB
 		ctx := appengine.NewContext(r)
 		query := datastore.NewQuery("Alarm")
 		var alarms []Alarm
@@ -179,7 +178,19 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Fprint(w, string(json))
 	case http.MethodPut:
-		// TODO
+		var alarm Alarm
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&alarm)
+		if err != nil {
+			panic(err)
+		}
+
+		ctx := appengine.NewContext(r)
+		_, err = datastore.Put(ctx, datastore.NewIncompleteKey(ctx, "Alarm", nil), &alarm)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
 	}
 }
 // [END gae_go111_app]
