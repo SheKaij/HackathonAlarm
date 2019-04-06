@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"github.com/imroc/req"
 )
 
-// MobilePay stuff
 type Binding struct {
 	ReceiverAlias       string `json:"receiverAlias"`
 	MerchantId          string `json:"merchantId"`
@@ -33,7 +33,9 @@ func bind() {
 		MerchantServiceName: "Donation",
 	}
 	url := "https://api.sandbox.mobilepay.dk/bindings-restapi/api/v1/bindings"
-	req.Post(url, header, req.BodyJSON(&body))
+	if _, err := req.Post(url, header, req.BodyJSON(&body)); err != nil {
+		fmt.Sprintln(err.Error())
+	}
 }
 
 func pay(amount float32) {
@@ -45,5 +47,7 @@ func pay(amount float32) {
 		Amount:                amount,
 	}
 	url := "https://api.sandbox.mobilepay.dk/bindings-restapi/api/v1/payments/payout-bankaccount"
-	req.Post(url, header, req.BodyJSON(&body))
+	if _, err := req.Post(url, header, req.BodyJSON(&body)); err != nil {
+		fmt.Sprintln(err.Error())
+	}
 }
