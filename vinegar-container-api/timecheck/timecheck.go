@@ -13,45 +13,41 @@ type Alarm struct {
 	TimeM    int      `json:"timeM"`
 	Sequence []string `json:"sequence"`
 	Defused  bool     `json:"defused"`
+	Key *datastore.Key `datastore:"__key__"`
 }
 
-func cronjob() {
+
+func main() {
 	currentTime := time.Now()
 	fmt.Println(currentTime)
 
 	ctx := appengine.BackgroundContext()
-	query := datastore.NewQuery("Alarm")
-	var alarms []Alarm
-	query.GetAll(ctx, &alarms)
-	if alarms == nil {
-		alarms = []Alarm{}
-	}
-
-	for _, element := range alarms {
-		if element.Defused && element.TimeH == currentTime.Hour() && element.TimeM == currentTime.Minute() {
-			fmt.Println("Setting defused to false")
-			element.Defused = false
-			updateAlarm(element)
-		}
-
-		if !element.Defused && element.TimeH == currentTime.Hour() && element.TimeM >= currentTime.Minute()+1 {
-			fmt.Println("Setting defused to true")
-			element.Defused = true
-			updateAlarm(element)
-			fmt.Println("Paying")
-			// pay(0.1)
-		}
-	}
-}
-
-func updateAlarm(alarm Alarm) {
-	// ctx := appengine.BackgroundContext()
-	// var put_key *datastore.Key
-
-	// put_key, err := datastore.Put(ctx, datastore.NewIncompleteKey(ctx, "Alarm", nil), &alarm)
-	_, err := datastore.SaveStruct(&alarm)
+	query := datastore.NewQuery("Alarm").Filter("Triggered = ", true).KeysOnly()
+	var alarm Alarm
+	keys, err := query.GetAll(ctx, &alarm)
 	if err != nil {
-		// http.Error(w, err.Error(), 500)
+		panic(err)
+	}
+	if len(keys) == 0 {
 		return
 	}
+
+	err = datastore.Get(ctx, keys[0], &alarm)
+	if err != nil {
+		panic(err)
+	}
+
+	if !alarm.Defused && alarm.TimeH == currentTime.Hour() && alarm.TimeM >= currentTime.Minute()+1 {
+		fmt.Println("Setting defused to true")
+		alarm.Defused = true
+		_, err := datastore.Put(ctx, alarm.Key, &alarm)
+		if err != nil {
+			//http.Error(w, err.Error(), 500)
+			panic(err)
+		}
+	} else {
+		//pay()
+		fmt.Println("Paying")
+	}
 }
+
