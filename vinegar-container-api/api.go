@@ -69,7 +69,7 @@ func main() {
 	http.HandleFunc("/register", registerHandler)
 	http.HandleFunc("/alarms", alarmHandler)
 	http.HandleFunc("/state", alarmStateHandler)
-	http.HandleFunc("/test", run)
+	http.HandleFunc("/triggerAlarms", triggerAlarms)
 
 	appengine.Main()
 	port := os.Getenv("PORT")
