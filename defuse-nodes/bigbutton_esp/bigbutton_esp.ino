@@ -1,10 +1,10 @@
 #include <ESP8266WiFi.h>
-#include <ArduinoJson.h>
 #include <ESP8266HTTPClient.h>
 
-//const size_t capacity = JSON_OBJECT_SIZE(3) + 30;
-//DynamicJsonDocument doc(capacity);
-StaticJsonDocument<200> doc;
+String host = "http://vinegar-container.appspot.com/register";
+String ssid = "GoAway";
+String pwd = "DontComeNearMe";
+String register_payload = "{ \"name\":\"BIGFATBUTTON\",\"description\":\"oh yes you heard right fucker\"}";
 
 int inputPin = D7;
 int val = 0;
@@ -15,36 +15,9 @@ void setup() {
   pinMode(inputPin, INPUT_PULLUP);
 
     
-  Serial.begin(115200);                                  //Serial connection
-  WiFi.begin("GoAway", "DontComeNearMe");  //WiFi connection
+  Serial.begin(115200);                        
 
-  while (WiFi.status() != WL_CONNECTED) {  //Wait for the WiFI connection completion
-
-    delay(500);
-    Serial.println("Waiting for connection...");
-
-  }
-  // Register
-  Serial.println("Register button...");
-  if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
-
-    HTTPClient http;    //Declare object of class HTTPClient
-
-    http.begin("http://vinegar-container.appspot.com/register");      //Specify request destination
-    http.addHeader("Content-Type", "application/json");  //Specify content-type header
-
-    int httpCode = http.POST("{ \"name\":\"BIGFATBUTTON\",\"description\":\"oh yes you heard right fucker\"}");   //Send the request
-    String payload = http.getString();                  //Get the response payload
-
-    Serial.println(httpCode);   //Print HTTP return code
-    Serial.println(payload);    //Print request response payload
-    uid = payload;
-    http.end();  //Close connection
-
-  }
-  Serial.println("Done!");
- 
-
+  uid = registerNode();
 
 }
 
@@ -53,28 +26,52 @@ void loop() {
   digitalWrite(BUILTIN_LED, !val);
 
   if (val == 1) {
-    if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
-
-      HTTPClient http;    //Declare object of class HTTPClient
-
-      http.begin("http://vinegar-container.appspot.com/defuse");      //Specify request destination
-      http.addHeader("Content-Type", "application/json");  //Specify content-type header
-
-      String post = "{ \"uid\":" + uid + "}";
-      int httpCode = http.POST(post);   //Send the request
-      String payload = http.getString();                  //Get the response payload
-
-      Serial.println(httpCode);   //Print HTTP return code
-      Serial.println(payload);    //Print request response payload
-
-      http.end();  //Close connection
-
-    } else {
-
-      Serial.println("Error in WiFi connection");
-
-    }
+    defuseAlarm(uid);
   }
   delay(100);
 
+}
+
+
+
+String sendPostRequest(String host, String payload){
+    if (WiFi.status() == WL_CONNECTED) { 
+    HTTPClient http;    
+
+    http.begin(host);      
+    http.addHeader("Content-Type", "application/json");  
+
+    int httpCode = http.POST(payload);  
+    String return_payload = http.getString();     
+                 
+    Serial.println(httpCode);  
+    
+    http.end();  
+    
+    return return_payload;
+  }
+}
+
+String registerNode(){
+  WiFi.begin(ssid,pwd);  //WiFi connection
+
+  while (WiFi.status() != WL_CONNECTED) {  //Wait for the WiFI connection completion
+
+    delay(500);
+    Serial.println("Waiting for connection...");
+  }
+  // Register
+  Serial.println("Register button...");
+  String post_reply = sendPostRequest(host,register_payload);
+  Serial.println(post_reply);
+  
+  return post_reply;
+}
+
+void defuseAlarm(String uid){
+
+  Serial.println("Defusing Alarm...");
+  String defuse_payload = "{ \"uid\":" + uid + "}";
+  String post_reply = sendPostRequest(host,defuse_payload);
+  Serial.println(post_reply);
 }
