@@ -24,6 +24,7 @@ class AlarmClock : Application() {
         }
 
         bindService(si, Connection(this), Context.BIND_AUTO_CREATE or Context.BIND_ABOVE_CLIENT)
+        val context: Context = AlarmClock.applicationContext()
     }
 
     class Connection(val parent: AlarmClock) : ServiceConnection {
@@ -52,5 +53,10 @@ class AlarmClock : Application() {
         val ServiceListeners = mutableListOf<(AlarmService.AlarmBinder) -> Unit>()
         lateinit var instance: AlarmClock
             private set
+
+        fun applicationContext() : Context {
+            return instance!!.applicationContext
+        }
     }
+
 }
