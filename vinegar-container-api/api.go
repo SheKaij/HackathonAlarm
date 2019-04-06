@@ -45,7 +45,7 @@ func main() {
 	http.HandleFunc("/defuse", defuseHandler)
 	http.HandleFunc("/register", registerHandler)
 	http.HandleFunc("/state", stateHandler)
-	http.HandleFunc("/alarm", alarmHandler)
+	http.HandleFunc("/alarms", alarmHandler)
 
 	appengine.Main()
 	// [START setting_port]
@@ -158,21 +158,22 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func alarmHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/alarm" {
+	if r.URL.Path != "/alarms" {
 		http.NotFound(w, r)
 		return
 	}
 	switch r.Method {
 	case http.MethodGet:
 		// TODO: Fetch current alarm in the DB
-		alarm := Alarm{
-			TimeH: 8,
-			TimeM: 30,
-			Sequence: []string{
-				"ojkj",
-				"kjkjk",
-				"mkjkf" } }
-		json, err := json.Marshal(alarm)
+		ctx := appengine.NewContext(r)
+		query := datastore.NewQuery("Alarm")
+		var alarms []Alarm
+		_, err := query.GetAll(ctx, &alarms)
+		if alarms == nil {
+			alarms = []Alarm {}
+		}
+	
+		json, err := json.Marshal(alarms)
 		if err != nil {
 			panic(err)
 		}
