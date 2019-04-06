@@ -4,10 +4,8 @@
  * Authors: Vinegar container left on the beach by a sandy grandma (Do not abbreviate)
 */
 
-// [START gae_go111_app]
 package main
 
-// [START import]
 import (
 	"fmt"
 	"log"
@@ -24,6 +22,12 @@ type Device struct {
 	Description string `json:"description"`
 }
 
+type TriggeredDeviceWithKey struct {
+	Device Device 
+	Defused bool
+	Key *datastore.Key `datastore:"__key__"`
+}
+
 type TriggeredDevice struct {
 	Device Device 
 	Defused bool
@@ -35,13 +39,24 @@ type DeviceWithID struct {
 	Description string `json:"description"`
 }
 
+type AlarmWithKey struct {
+	TimeH int `json:"timeH"`
+	TimeM int `json:"timeM"`
+	Limit int `json:"limit"`
+	Amount int `json:"amount"`
+	Defused bool `json:"defused"`
+	Devices []TriggeredDeviceWithKey `json:"devices"`
+	Triggered bool `json:"triggered"`
+	Key *datastore.Key `datastore:"__key__"`
+}
+
 type Alarm struct {
 	TimeH int `json:"timeH"`
 	TimeM int `json:"timeM"`
 	Limit int `json:"limit"`
 	Amount int `json:"amount"`
 	Defused bool `json:"defused"`
-	Devices []TriggeredDevice `json:"devices"`
+	Devices []TriggeredDevice`json:"devices"`
 	Triggered bool `json:"triggered"`
 }
 
@@ -61,10 +76,7 @@ type AlarmWithID struct {
 	Defused bool `json:"defused"`
 	Triggered bool `json:"triggered"`
 }
-// [END import]
-// [START main_func]
 
-// TODO: 
 func main() {
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/devices", devicesHandler)
@@ -72,9 +84,9 @@ func main() {
 	http.HandleFunc("/register", registerHandler)
 	http.HandleFunc("/alarms", alarmHandler)
 	http.HandleFunc("/state", alarmStateHandler)
+	http.HandleFunc("/triggerAlarms", triggerAlarms)
 
 	appengine.Main()
-	// [START setting_port]
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -83,14 +95,9 @@ func main() {
 
 	log.Printf("Listening on port %s", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
-	// [END setting_port]
 }
 
-// [END main_func]
 
-// [START indexHandler]
-
-// indexHandler responds to requests with our greeting.
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
@@ -98,8 +105,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprint(w, "{\"message\":\"You donnated 12,345kr to charities, congrats!\"}")
 }
-
-// [END indexHandler]
 
 func devicesHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/devices"{
@@ -138,26 +143,49 @@ func defuseHandler(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 		ctx := appengine.NewContext(r)
-		var tDevices []TriggeredDevice
+		var tDevices []TriggeredDeviceWithKey
 		id64, err := strconv.ParseInt(device.Uid, 10, 64)
+		deviceKey := datastore.NewKey(ctx, "Device", "", id64, nil)
 		if err != nil {
 			panic(err)
 		}
-		query := datastore.NewQuery("TriggeredDevice").Filter("Device.__key__ =", id64)
-		// Get the ancestor of the triggered device, it should be an alarm
-		keys, err := query.GetAll(ctx, &tDevices)
-		fmt.Print(tDevices)
+		query := datastore.NewQuery("TriggeredDevice")
+		_, err = query.GetAll(ctx, &tDevices)
 		if err != nil {
 			panic(err)
 		}
-		//var alarm Alarm
-		// If currentTime > alarm.time and currentTime < (alarm.time + maxMinutes)
-		for i, tDevice := range tDevices {
-			tDevice.Defused = true
-			datastore.Put(ctx, keys[i], tDevice)
+		matchingDevices := []TriggeredDeviceWithKey{}
+		for _, triggeredDevice := range tDevices {
+			if triggeredDevice.Key == deviceKey {
+				matchingDevices = append(matchingDevices, triggeredDevice)
+			}
 		}
-
-		fmt.Fprint(w, "YE BOI")
+		var alarms []AlarmWithKey
+		query = datastore.NewQuery("Alarm")
+		_, err = query.GetAll(ctx, &alarms)
+		if err != nil {
+			panic(err)
+		}
+		var matchingAlarm AlarmWithKey
+		found := false
+		for _, alarm := range alarms {
+			for _, device := range alarm.Devices {
+				if device.Key == deviceKey {
+					matchingAlarm = alarm
+					found = true
+					break
+				}
+			}
+			if found {
+				break
+			}
+		}
+		if matchingAlarm.Triggered {
+			for _, tDevice := range matchingDevices {
+				tDevice.Defused = true
+				datastore.Put(ctx, tDevice.Key, tDevice)
+			}
+		}
 	}
 }
 
@@ -167,7 +195,6 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == http.MethodPost {
-		// TODO: Return existing id if same name/desc
 		var registration Device
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&registration)
@@ -176,15 +203,21 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		ctx := appengine.NewContext(r)
-		put_key, err := datastore.Put(ctx, datastore.NewIncompleteKey(ctx, "Device", nil), &registration)
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-			return
+		query := datastore.NewQuery("Device").Filter("Name =", registration.Name).Filter("Description =", registration.Description).Limit(1).KeysOnly()
+		existingKey, err := query.GetAll(ctx, nil)
+		if len(existingKey) != 0 {
+			fmt.Fprint(w, strconv.FormatInt(existingKey[0].IntID(), 10))
+		} else {
+			put_key, err := datastore.Put(ctx, datastore.NewIncompleteKey(ctx, "Device", nil), &registration)
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+				return
+			}
+			if err != nil {
+				panic(err)
+			}
+			fmt.Fprint(w, strconv.FormatInt(put_key.IntID(), 10))
 		}
-		if err != nil {
-			panic(err)
-		}
-		fmt.Fprint(w, strconv.FormatInt(put_key.IntID(), 10))
 	}
 }
 
@@ -246,7 +279,7 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 			TimeM: alarmRequest.TimeM,
 			Limit: alarmRequest.Limit,
 			Amount: alarmRequest.Amount,
-			Devices: []TriggeredDevice {},
+			Devices: []TriggeredDevice{},
 			Triggered: false}
 		for _, deviceId := range alarmRequest.Devices {
 			id64, err := strconv.ParseInt(deviceId, 10, 64)
@@ -290,4 +323,3 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
-// [END gae_go111_app]
