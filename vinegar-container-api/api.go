@@ -194,7 +194,7 @@ func alarmStateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := appengine.NewContext(r)
-	query := datastore.NewQuery("Alarm").Filter("triggered =", true).Limit(1).KeysOnly()
+	query := datastore.NewQuery("Alarm").Filter("Triggered =", true).Limit(1).KeysOnly()
 	var activeAlarm Alarm
 	keys, err := query.GetAll(ctx, &activeAlarm)
 	if err != nil {
@@ -203,6 +203,7 @@ func alarmStateHandler(w http.ResponseWriter, r *http.Request) {
 	if len(keys) == 0 {
 		fmt.Fprint(w, "{}")
 	} else {
+		err = datastore.Get(ctx, keys[0], &activeAlarm)
 		json, err := json.Marshal(activeAlarm)
 		if err != nil {
 			panic(err)
