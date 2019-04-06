@@ -1,7 +1,9 @@
 package hr.olfo.alarmclock.data
 
 class AlarmDto {
-    val timeH: Int = 0
-    val timeM: Int = 0
-    val sequence= arrayOf<String>()
+    var timeH: Int = 0
+    var timeM: Int = 0
+    var limit: Int = 0
+    var amount: Int = 0
+    var devices: ArrayList<String> = ArrayList()
 }
