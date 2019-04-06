@@ -7,6 +7,7 @@ import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputType
 import android.text.TextWatcher
 import android.view.View
 import android.widget.*
@@ -27,6 +28,7 @@ import kotlinx.android.synthetic.main.activity_alarm_create.*
 import java.util.*
 import hr.olfo.alarmclock.util.Util
 import org.json.JSONObject
+import kotlin.collections.ArrayList
 
 class AlarmCreate : AppCompatActivity() {
 
@@ -186,55 +188,6 @@ class AlarmCreate : AppCompatActivity() {
                     seekBarLimit.progress = 10
                 }
             }
-
-            when (alarm.amount) {
-                1 -> {
-                    labelAmount.text = "1 dkk"
-                    seekBarAmount.progress = 0
-                }
-                2 -> {
-                    labelAmount.text = "2 dkk"
-                    seekBarAmount.progress = 1
-                }
-                5 -> {
-                    labelAmount.text = "5 dkk"
-                    seekBarAmount.progress = 2
-                }
-                10 -> {
-                    labelAmount.text = "10 dkk"
-                    seekBarAmount.progress = 3
-                }
-                20 -> {
-                    labelAmount.text = "20 dkk"
-                    seekBarAmount.progress = 4
-                }
-                50 -> {
-                    labelAmount.text = "50 dkk"
-                    seekBarAmount.progress = 5
-                }
-                100 -> {
-                    labelAmount.text = "100 dkk"
-                    seekBarAmount.progress = 6
-                }
-                200 -> {
-                    labelAmount.text = "200 dkk"
-                    seekBarAmount.progress = 7
-                }
-                500 -> {
-                    labelAmount.text = "500 dkk"
-                    seekBarAmount.progress = 8
-                }
-                1000 -> {
-                    labelAmount.text = "1000 dkk"
-                    seekBarAmount.progress = 9
-                }
-                2000 -> {
-                    labelAmount.text = "2000 dkk"
-                    seekBarAmount.progress = 10
-                }
-            }
-
-
         } else {
             alarm = Alarm()
             alarm.ringtoneUri = Util.ringtones.keys.firstOrNull()?.toString() ?: ""
@@ -244,7 +197,7 @@ class AlarmCreate : AppCompatActivity() {
             alarm.timeH = c.get(Calendar.HOUR_OF_DAY)
             alarm.timeM = c.get(Calendar.MINUTE)
             alarm.limit = 60
-            alarm.amount = 20
+            alarm.amount = 0
         }
         labelTime.text = Util.getDisplayTime(this, alarm.timeH, alarm.timeM)
 
@@ -369,6 +322,8 @@ class AlarmCreate : AppCompatActivity() {
             alarm.snoozeOnMove = checkBoxSnoozeOnMove.isChecked
         }*/
 
+
+
         seekBarLimit.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 when (progress) {
@@ -404,7 +359,7 @@ class AlarmCreate : AppCompatActivity() {
                         labelLimit.text = "4 min"
                         alarm.limit = 240
                     }
-                    8 -> {
+                        8 -> {
                         labelLimit.text = "5 min"
                         alarm.limit = 300
                     }
@@ -422,57 +377,15 @@ class AlarmCreate : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        seekBarAmount.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                when (progress) {
-                    0 -> {
-                        labelAmount.text = "1 dkk"
-                        alarm.amount = 1
-                    }
-                    1 -> {
-                        labelAmount.text = "2 dkk"
-                        alarm.amount = 2
-                    }
-                    2 -> {
-                        labelAmount.text = "5 dkk"
-                        alarm.amount = 5
-                    }
-                    3 -> {
-                        labelAmount.text = "10 dkk"
-                        alarm.amount = 10
-                    }
-                    4 -> {
-                        labelAmount.text = "20 dkk"
-                        alarm.amount = 20
-                    }
-                    5 -> {
-                        labelAmount.text = "50 dkk"
-                        alarm.amount = 50
-                    }
-                    6 -> {
-                        labelAmount.text = "100 dkk"
-                        alarm.amount = 100
-                    }
-                    7 -> {
-                        labelAmount.text = "200 dkk"
-                        alarm.amount = 200
-                    }
-                    8 -> {
-                        labelAmount.text = "500 dkk"
-                        alarm.amount = 500
-                    }
-                    9 -> {
-                        labelAmount.text = "1000 dkk"
-                        alarm.amount = 1000
-                    }
-                    10 -> {
-                        labelAmount.text = "2000 dkk"
-                        alarm.amount = 2000
-                    }
-                }
+        moneyAmount.addTextChangedListener(object: TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+
             }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val money = (s?.toString()?.split(' ') ?: listOf("0"))[0]
+                alarm.amount = Integer.parseInt(money)
+            }
         })
 
         buttonSave.setOnClickListener {

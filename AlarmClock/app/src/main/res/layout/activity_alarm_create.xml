@@ -255,54 +255,29 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:orientation="vertical"
-            android:theme="@style/Widget.Group">
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
 
-            <LinearLayout
+            <EditText
+                android:id="@+id/moneyAmount"
+                android:layout_width="304dp"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:cursorVisible="true"
+                android:hint="0"
+                android:inputType="numberSigned"
+                android:textAlignment="center"
+                android:textSize="31sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Amount"
-                    android:textAlignment="viewStart"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:theme="@style/AppTheme" />
-
-                <TextView
-                    android:id="@+id/labelAmount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|end"
-                    android:layout_weight="1"
-                    android:text="20 dkk"
-                    android:textAlignment="viewEnd"
-                    android:theme="@style/AppTheme" />
-
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_weight="1"
-                android:background="?android:attr/listDivider" />
-
-            <SeekBar
-                android:id="@+id/seekBarAmount"
-                style="@style/Widget.AppCompat.SeekBar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:max="10"
-                android:progress="4"/>
-
+                android:gravity="center"
+                android:text="DKK"
+                android:textAlignment="center"
+                android:textStyle="normal" />
         </LinearLayout>
 
         <LinearLayout
