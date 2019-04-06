@@ -3,6 +3,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="10dp"
@@ -33,34 +34,34 @@
             android:textSize="50sp"
             android:onClick="showTimePicker"/>
 
-        <LinearLayout
-            android:id="@+id/buttonRepeat"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:theme="@style/Widget.Group">
+        <!--<LinearLayout-->
+            <!--android:id="@+id/buttonRepeat"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:orientation="horizontal"-->
+            <!--android:theme="@style/Widget.Group">-->
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Repeat"
-                android:textAlignment="viewStart"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:theme="@style/AppTheme" />
+            <!--<TextView-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_weight="1"-->
+                <!--android:text="Repeat"-->
+                <!--android:textAlignment="viewStart"-->
+                <!--android:textSize="18sp"-->
+                <!--android:textStyle="bold"-->
+                <!--android:theme="@style/AppTheme" />-->
 
-            <TextView
-                android:id="@+id/labelRepeat"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical|end"
-                android:layout_weight="1"
-                android:text="Never"
-                android:textAlignment="viewEnd"
-                android:theme="@style/AppTheme" />
+            <!--<TextView-->
+                <!--android:id="@+id/labelRepeat"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_gravity="center_vertical|end"-->
+                <!--android:layout_weight="1"-->
+                <!--android:text="Never"-->
+                <!--android:textAlignment="viewEnd"-->
+                <!--android:theme="@style/AppTheme" />-->
 
-        </LinearLayout>
+        <!--</LinearLayout>-->
 
         <LinearLayout
             android:id="@+id/buttonRingtone"
@@ -138,73 +139,90 @@
 
         </LinearLayout>
 
-        <LinearLayout
+        <!--<LinearLayout-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_marginTop="5dp"-->
+            <!--android:orientation="vertical"-->
+            <!--android:theme="@style/Widget.Group">-->
+
+            <!--<LinearLayout-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:layout_weight="1"-->
+                <!--android:orientation="horizontal">-->
+
+                <!--<TextView-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:layout_weight="1"-->
+                    <!--android:text="Snooze"-->
+                    <!--android:textAlignment="viewStart"-->
+                    <!--android:textSize="18sp"-->
+                    <!--android:textStyle="bold"-->
+                    <!--android:theme="@style/AppTheme" />-->
+
+                <!--<TextView-->
+                    <!--android:id="@+id/labelSnooze"-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:layout_gravity="center_vertical|end"-->
+                    <!--android:layout_weight="1"-->
+                    <!--android:text="Off"-->
+                    <!--android:textAlignment="viewEnd"-->
+                    <!--android:theme="@style/AppTheme" />-->
+            <!--</LinearLayout>-->
+
+            <!--<View-->
+                <!--android:id="@+id/divider"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="1dp"-->
+                <!--android:layout_weight="1"-->
+                <!--android:background="?android:attr/listDivider" />-->
+
+            <!--<SeekBar-->
+                <!--android:id="@+id/seekBarSnooze"-->
+                <!--style="@style/Widget.AppCompat.SeekBar"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_weight="1"-->
+                <!--android:max="10"-->
+                <!--android:progress="0" />-->
+
+            <!--<CheckBox-->
+                <!--android:id="@+id/checkBoxSnoozeOnMove"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_weight="1"-->
+                <!--android:checked="false"-->
+                <!--android:text="Snooze on move"-->
+                <!--android:textSize="14sp" />-->
+
+        <!--</LinearLayout>LinearLayout-->
+
+        <TextView
+            android:id="@+id/devicesText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
+            android:text="Devices"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:theme="@style/Widget.Group" />
+
+        <LinearLayout
+            android:id="@+id/devicesList"
             android:orientation="vertical"
-            android:theme="@style/Widget.Group">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Snooze"
-                    android:textAlignment="viewStart"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:theme="@style/AppTheme" />
-
-                <TextView
-                    android:id="@+id/labelSnooze"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|end"
-                    android:layout_weight="1"
-                    android:text="Off"
-                    android:textAlignment="viewEnd"
-                    android:theme="@style/AppTheme" />
-            </LinearLayout>
-
-            <View
-                android:id="@+id/divider"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_weight="1"
-                android:background="?android:attr/listDivider" />
-
-            <SeekBar
-                android:id="@+id/seekBarSnooze"
-                style="@style/Widget.AppCompat.SeekBar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:max="10"
-                android:progress="0" />
-
-            <CheckBox
-                android:id="@+id/checkBoxSnoozeOnMove"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:checked="false"
-                android:text="Snooze on move"
-                android:textSize="14sp" />
-
-        </LinearLayout>
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:theme="@style/Widget.Group" />
 
         <Button
             android:id="@+id/buttonSave"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Save" />
-
 
     </LinearLayout>
 
