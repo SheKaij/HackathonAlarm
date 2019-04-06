@@ -221,10 +221,10 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 			Amount: alarmRequest.Amount,
 			Devices: []TriggeredDevice {}}
 		for _, deviceId := range alarmRequest.Devices {
-			fmt.Print(deviceId)
-			key := datastore.NewKey(ctx, "Device", deviceId, 0, nil)
+			id64, err := strconv.ParseInt(deviceId, 10, 64)
+			key := datastore.NewKey(ctx, "Device", "", id64, nil)
 			var device Device
-			err := datastore.Get(ctx, key, &device)
+			err = datastore.Get(ctx, key, &device)
 			if err != nil {
 				panic(err)
 			}
