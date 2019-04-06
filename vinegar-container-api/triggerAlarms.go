@@ -13,9 +13,8 @@ func triggerAlarms(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(currentTime)
 
 	ctx := appengine.BackgroundContext()
-	query := datastore.NewQuery("Alarm").Filter("Triggered = ", true).KeysOnly()
-	var alarm AlarmWithKey
-	keys, err := query.GetAll(ctx, &alarm)
+	query := datastore.NewQuery("Alarm").Filter("Defused = ", false).KeysOnly()
+	keys, err := query.GetAll(ctx, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -23,31 +22,56 @@ func triggerAlarms(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = datastore.Get(ctx, keys[0], &alarm)
-	if err != nil {
-		panic(err)
-	}
+	for _, alarmKey := range keys {
+		fmt.Println(alarmKey.String())
+		var alarm Alarm
+		fmt.Println("Fetching alarm")
+		err = datastore.Get(ctx, alarmKey, &alarm)
+		if err != nil {
+			panic(err)
+		}
 
-	if !alarm.Defused && alarm.TimeH == currentTime.Hour() && alarm.TimeM >= currentTime.Minute()+1 {
-		fmt.Println("Setting defused to true")
-		defuse := true
-		for _, device := range alarm.Devices {
-			if !device.Defused {
-				defuse = false
-				break
+		//if !alarm.Defused && alarm.TimeH == currentTime.Hour() && alarm.TimeM >= currentTime.Minute()+1 {
+		if true {
+			fmt.Println("Setting defused to true")
+			defuse := true
+			for _, deviceID := range alarm.DeviceIDs {
+				fmt.Println("DeviceID: " + deviceID.String())
+				var triggeredDevice TriggeredDevice
+				err := datastore.Get(ctx, deviceID, &triggeredDevice)
+				if err != nil {
+					panic(err)
+				}
+				if !triggeredDevice.Defused {
+					fmt.Println(triggeredDevice.DeviceID.String() + " not defused!")
+					fmt.Println(triggeredDevice)
+					defuse = false
+					fmt.Println("Breaking")
+					break
+				}
 			}
-		}
-		if defuse {
-			alarm.Defused = true
-			_, err := datastore.Put(ctx, alarm.Key, &alarm)
-			if err != nil {
-				//http.Error(w, err.Error(), 500)
-				panic(err)
+			if defuse {
+				fmt.Println("Defusing alarm")
+				fmt.Println(alarm)
+				alarm.Defused = true
+				_, err := datastore.Put(ctx, alarmKey, &alarm)
+				if err != nil {
+					//http.Error(w, err.Error(), 500)
+					panic(err)
+				}
+			} else {
+				fmt.Println("Not defusing, triggering")
+				alarm.Triggered = true
+				_, err := datastore.Put(ctx, alarmKey, &alarm)
+				if err != nil {
+					//http.Error(w, err.Error(), 500)
+					panic(err)
+				}
 			}
+		} else {
+			//pay()
+			fmt.Println("Paying")
 		}
-	} else {
-		//pay()
-		fmt.Println("Paying")
 	}
 }
 
