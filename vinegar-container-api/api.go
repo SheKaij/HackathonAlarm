@@ -42,6 +42,7 @@ type Alarm struct {
 	Amount int `json:"amount"`
 	Defused bool `json:"defused"`
 	Devices []TriggeredDevice `json:"devices"`
+	Triggered bool `json:"triggered"`
 }
 
 type AlarmRequest struct {
@@ -58,6 +59,7 @@ type AlarmWithID struct {
 	TimeM int `json:"timeM"`
 	Devices []TriggeredDevice `json:"devices"`
 	Defused bool `json:"defused"`
+	Triggered bool `json:"triggered"`
 }
 // [END import]
 // [START main_func]
@@ -69,6 +71,7 @@ func main() {
 	http.HandleFunc("/defuse", defuseHandler)
 	http.HandleFunc("/register", registerHandler)
 	http.HandleFunc("/alarms", alarmHandler)
+	http.HandleFunc("/state", alarmStateHandler)
 
 	appengine.Main()
 	// [START setting_port]
@@ -185,6 +188,29 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func alarmStateHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/state" {
+		http.NotFound(w, r)
+		return
+	}
+	ctx := appengine.NewContext(r)
+	query := datastore.NewQuery("Alarm").Filter("triggered =", true).Limit(1).KeysOnly()
+	var activeAlarm Alarm
+	keys, err := query.GetAll(ctx, &activeAlarm)
+	if err != nil {
+		panic(err)
+	}
+	if len(keys) == 0 {
+		fmt.Fprint(w, "{}")
+	} else {
+		json, err := json.Marshal(activeAlarm)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Fprint(w, string(json))
+	}
+}
+
 func alarmHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/alarms" {
 		http.NotFound(w, r)
@@ -199,7 +225,7 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 		if alarms == nil {
 			alarms = []Alarm {}
 		}
-	
+		
 		json, err := json.Marshal(alarms)
 		if err != nil {
 			panic(err)
@@ -219,7 +245,8 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 			TimeM: alarmRequest.TimeM,
 			Limit: alarmRequest.Limit,
 			Amount: alarmRequest.Amount,
-			Devices: []TriggeredDevice {}}
+			Devices: []TriggeredDevice {},
+			Triggered: false}
 		for _, deviceId := range alarmRequest.Devices {
 			id64, err := strconv.ParseInt(deviceId, 10, 64)
 			key := datastore.NewKey(ctx, "Device", "", id64, nil)
@@ -249,7 +276,8 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 			TimeH: alarm.TimeH,
 			TimeM: alarm.TimeM,
 			Devices: alarm.Devices,
-			Defused: false}
+			Defused: false,
+			Triggered: false}
 
 		json, err := json.Marshal(alarmWithID)
 		if err != nil {
