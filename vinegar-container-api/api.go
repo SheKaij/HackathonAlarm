@@ -4,10 +4,8 @@
  * Authors: Vinegar container left on the beach by a sandy grandma (Do not abbreviate)
 */
 
-// [START gae_go111_app]
 package main
 
-// [START import]
 import (
 	"fmt"
 	"log"
@@ -44,6 +42,7 @@ type Alarm struct {
 	Defused bool `json:"defused"`
 	Devices []TriggeredDevice `json:"devices"`
 	Triggered bool `json:"triggered"`
+	Key *datastore.Key `datastore:"__key__"`
 }
 
 type AlarmRequest struct {
@@ -62,10 +61,7 @@ type AlarmWithID struct {
 	Defused bool `json:"defused"`
 	Triggered bool `json:"triggered"`
 }
-// [END import]
-// [START main_func]
 
-// TODO: 
 func main() {
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/devices", devicesHandler)
@@ -73,9 +69,9 @@ func main() {
 	http.HandleFunc("/register", registerHandler)
 	http.HandleFunc("/alarms", alarmHandler)
 	http.HandleFunc("/state", alarmStateHandler)
+	http.HandleFunc("/test", run)
 
 	appengine.Main()
-	// [START setting_port]
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -84,14 +80,9 @@ func main() {
 
 	log.Printf("Listening on port %s", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
-	// [END setting_port]
 }
 
-// [END main_func]
 
-// [START indexHandler]
-
-// indexHandler responds to requests with our greeting.
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
@@ -99,8 +90,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprint(w, "{\"message\":\"You donnated 12,345kr to charities, congrats!\"}")
 }
-
-// [END indexHandler]
 
 func devicesHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/devices"{
@@ -314,4 +303,3 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
-// [END gae_go111_app]
