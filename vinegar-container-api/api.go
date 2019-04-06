@@ -195,7 +195,6 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == http.MethodPost {
-		// TODO: Return existing id if same name/desc
 		var registration Device
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&registration)
@@ -204,15 +203,21 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		ctx := appengine.NewContext(r)
-		put_key, err := datastore.Put(ctx, datastore.NewIncompleteKey(ctx, "Device", nil), &registration)
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-			return
+		query := datastore.NewQuery("Device").Filter("Name =", registration.Name).Filter("Description =", registration.Description).Limit(1).KeysOnly()
+		existingKey, err := query.GetAll(ctx, nil)
+		if len(existingKey) != 0 {
+			fmt.Fprint(w, strconv.FormatInt(existingKey[0].IntID(), 10))
+		} else {
+			put_key, err := datastore.Put(ctx, datastore.NewIncompleteKey(ctx, "Device", nil), &registration)
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+				return
+			}
+			if err != nil {
+				panic(err)
+			}
+			fmt.Fprint(w, strconv.FormatInt(put_key.IntID(), 10))
 		}
-		if err != nil {
-			panic(err)
-		}
-		fmt.Fprint(w, strconv.FormatInt(put_key.IntID(), 10))
 	}
 }
 
