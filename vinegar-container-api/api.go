@@ -22,10 +22,15 @@ type Device struct {
 	Description string `json:"description"`
 }
 
-type TriggeredDevice struct {
+type TriggeredDeviceWithKey struct {
 	Device Device 
 	Defused bool
 	Key *datastore.Key `datastore:"__key__"`
+}
+
+type TriggeredDevice struct {
+	Device Device 
+	Defused bool
 }
 
 type DeviceWithID struct {
@@ -34,15 +39,25 @@ type DeviceWithID struct {
 	Description string `json:"description"`
 }
 
+type AlarmWithKey struct {
+	TimeH int `json:"timeH"`
+	TimeM int `json:"timeM"`
+	Limit int `json:"limit"`
+	Amount int `json:"amount"`
+	Defused bool `json:"defused"`
+	Devices []TriggeredDeviceWithKey `json:"devices"`
+	Triggered bool `json:"triggered"`
+	Key *datastore.Key `datastore:"__key__"`
+}
+
 type Alarm struct {
 	TimeH int `json:"timeH"`
 	TimeM int `json:"timeM"`
 	Limit int `json:"limit"`
 	Amount int `json:"amount"`
 	Defused bool `json:"defused"`
-	Devices []TriggeredDevice `json:"devices"`
+	Devices []TriggeredDevice`json:"devices"`
 	Triggered bool `json:"triggered"`
-	Key *datastore.Key `datastore:"__key__"`
 }
 
 type AlarmRequest struct {
@@ -128,7 +143,7 @@ func defuseHandler(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 		ctx := appengine.NewContext(r)
-		var tDevices []TriggeredDevice
+		var tDevices []TriggeredDeviceWithKey
 		id64, err := strconv.ParseInt(device.Uid, 10, 64)
 		deviceKey := datastore.NewKey(ctx, "Device", "", id64, nil)
 		if err != nil {
@@ -139,19 +154,19 @@ func defuseHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		matchingDevices := []TriggeredDevice{}
+		matchingDevices := []TriggeredDeviceWithKey{}
 		for _, triggeredDevice := range tDevices {
 			if triggeredDevice.Key == deviceKey {
 				matchingDevices = append(matchingDevices, triggeredDevice)
 			}
 		}
-		var alarms []Alarm
+		var alarms []AlarmWithKey
 		query = datastore.NewQuery("Alarm")
 		_, err = query.GetAll(ctx, &alarms)
 		if err != nil {
 			panic(err)
 		}
-		var matchingAlarm Alarm
+		var matchingAlarm AlarmWithKey
 		found := false
 		for _, alarm := range alarms {
 			for _, device := range alarm.Devices {
@@ -259,7 +274,7 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 			TimeM: alarmRequest.TimeM,
 			Limit: alarmRequest.Limit,
 			Amount: alarmRequest.Amount,
-			Devices: []TriggeredDevice {},
+			Devices: []TriggeredDevice{},
 			Triggered: false}
 		for _, deviceId := range alarmRequest.Devices {
 			id64, err := strconv.ParseInt(deviceId, 10, 64)
