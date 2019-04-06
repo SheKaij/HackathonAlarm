@@ -22,12 +22,6 @@ type Device struct {
 	Description string `json:"description"`
 }
 
-type TriggeredDeviceWithKey struct {
-	DeviceID *datastore.Key 
-	Defused bool
-	Key *datastore.Key `datastore:"__key__"`
-}
-
 type TriggeredDevice struct {
 	DeviceID *datastore.Key 
 	Defused bool
@@ -37,17 +31,6 @@ type DeviceWithID struct {
 	Uid string `json:"uid"`
 	Name string `json:"name"`
 	Description string `json:"description"`
-}
-
-type AlarmWithKey struct {
-	TimeH int `json:"timeH"`
-	TimeM int `json:"timeM"`
-	Limit int `json:"limit"`
-	Amount int `json:"amount"`
-	Defused bool `json:"defused"`
-	DeviceIDs []*datastore.Key `json:"deviceIDs"`
-	Triggered bool `json:"triggered"`
-	Key *datastore.Key `datastore:"__key__"`
 }
 
 type Alarm struct {

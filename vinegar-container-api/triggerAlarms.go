@@ -12,7 +12,7 @@ func triggerAlarms(w http.ResponseWriter, r *http.Request) {
 	currentTime := time.Now()
 	fmt.Println(currentTime)
 
-	ctx := appengine.BackgroundContext()
+	ctx := appengine.NewContext(r)
 	query := datastore.NewQuery("Alarm").Filter("Defused = ", false).KeysOnly()
 	keys, err := query.GetAll(ctx, nil)
 	if err != nil {
