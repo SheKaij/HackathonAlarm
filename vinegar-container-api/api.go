@@ -36,6 +36,12 @@ type Alarm struct {
 	Sequence []string `json:"sequence"`
 }
 
+type AlarmWithID struct {
+	Uid string `json:"uid"`
+	TimeH int `json:"timeH"`
+	TimeM int `json:"timeM"`
+	Sequence []string `json:"sequence"`
+}
 // [END import]
 // [START main_func]
 
@@ -177,7 +183,7 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 		fmt.Fprint(w, string(json))
-	case http.MethodPut:
+	case http.MethodPost:
 		var alarm Alarm
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&alarm)
@@ -186,11 +192,25 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		ctx := appengine.NewContext(r)
-		_, err = datastore.Put(ctx, datastore.NewIncompleteKey(ctx, "Alarm", nil), &alarm)
+		var put_key *datastore.Key
+		put_key, err = datastore.Put(ctx, datastore.NewIncompleteKey(ctx, "Alarm", nil), &alarm)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
 		}
+
+		alarmWithID := AlarmWithID{
+			Uid: strconv.FormatInt(put_key.IntID(), 10),
+			TimeH: alarm.TimeH,
+			TimeM: alarm.TimeM,
+			Sequence: alarm.Sequence}
+
+		json, err := json.Marshal(alarmWithID)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Fprint(w, string(json))
 	}
 }
 // [END gae_go111_app]
