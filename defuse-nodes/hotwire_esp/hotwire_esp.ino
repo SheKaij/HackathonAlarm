@@ -26,6 +26,7 @@ int countdown = NUM_LEDS;
 int cnt_divider = 0;
 int cnt_divider2 = 0;
 int cnt = 0;
+int failed = 0;
 
 
 void setup() {
@@ -56,8 +57,17 @@ void loop()
     else {
       cnt_divider2 = 0;
 
-      if (checkAlarms() == 1) {
-        running_toggle = 1;
+      int alarm = checkAlarms();
+      if (alarm == 1 && failed==0) {
+          running_toggle = 1;
+          countdown = NUM_LEDS;
+      }
+      else if(alarm == 1 && failed==1){
+        running_toggle=0;
+      }
+      else if(alarm == 0 && failed==1){
+        failed =0;
+        Serial.println("Resetted!");
       }
     }
   }
@@ -88,6 +98,7 @@ void loop()
 
   if (digitalRead(WIRE_INPUT) == 0 && running_toggle == 1) {
     running_toggle = 0;
+    failed=1;
     cnt = 0;
     for (int i = 0; i < 5; i++) {
       for (int idx = 0; idx < NUM_LEDS; idx++) {
@@ -106,6 +117,7 @@ void loop()
     }
     Serial.println("FAILED!");
   }
+  
 
 
 
@@ -113,6 +125,7 @@ void loop()
   if (countdown == 0 && running_toggle == 1) {
     Serial.println("Countdown done");
     running_toggle = 0;
+    failed=1;
     for (int i = 0; i < 5; i++) {
       for (int idx = 0; idx < NUM_LEDS; idx++) {
         leds[idx] = CRGB::Red;
@@ -194,9 +207,15 @@ String sendGetRequest(String host) {
 
 int checkAlarms() {
   Serial.println("Checking for alarms...");
-  String return_payload = sendGetRequest(host + "alarms");
+  String return_payload = sendGetRequest(host + "state");
   Serial.println(return_payload);
-  return 0;
+
+  if(return_payload != "{}"){
+    return 1;
+  }
+  else{
+    return 0;
+  }
 }
 
 String registerNode() {
@@ -218,7 +237,7 @@ String registerNode() {
 void defuseAlarm(String uid) {
 
   Serial.println("Defusing Alarm...");
-  String defuse_payload = "{ \"uid\":" + uid + "}";
+  String defuse_payload = "{ \"uid\":\"" + uid + "\"}";
   String post_reply = sendPostRequest(host + "defuse", defuse_payload);
   Serial.println(post_reply);
 }
