@@ -24,6 +24,12 @@ type Device struct {
 	Description string `json:"description"`
 }
 
+type TriggeredDevice struct {
+	Device Device 
+	Defused bool
+	Key *datastore.Key `datastore:"__key__"`
+}
+
 type DeviceWithID struct {
 	Uid string `json:"uid"`
 	Name string `json:"name"`
@@ -33,26 +39,40 @@ type DeviceWithID struct {
 type Alarm struct {
 	TimeH int `json:"timeH"`
 	TimeM int `json:"timeM"`
-	Sequence []string `json:"sequence"`
+	Limit int `json:"limit"`
+	Amount int `json:"amount"`
 	Defused bool `json:"defused"`
+	Devices []TriggeredDevice `json:"devices"`
+	Triggered bool `json:"triggered"`
+}
+
+type AlarmRequest struct {
+	TimeH int `json:"timeH"`
+	TimeM int `json:"timeM"`
+	Limit int `json:"limit"`
+	Amount int `json:"amount"`
+	Devices []string `json:"devices"`
 }
 
 type AlarmWithID struct {
 	Uid string `json:"uid"`
 	TimeH int `json:"timeH"`
 	TimeM int `json:"timeM"`
-	Sequence []string `json:"sequence"`
+	Devices []TriggeredDevice `json:"devices"`
 	Defused bool `json:"defused"`
+	Triggered bool `json:"triggered"`
 }
 // [END import]
 // [START main_func]
 
+// TODO: 
 func main() {
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/devices", devicesHandler)
 	http.HandleFunc("/defuse", defuseHandler)
 	http.HandleFunc("/register", registerHandler)
 	http.HandleFunc("/alarms", alarmHandler)
+	http.HandleFunc("/state", alarmStateHandler)
 
 	appengine.Main()
 	// [START setting_port]
@@ -112,8 +132,56 @@ func defuseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == http.MethodPost {
-		// TODO: update the alarm in the DB
-		fmt.Fprint(w, "YE BOI")
+		var device DeviceWithID
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&device)
+		if err != nil {
+			panic(err)
+		}
+		ctx := appengine.NewContext(r)
+		var tDevices []TriggeredDevice
+		id64, err := strconv.ParseInt(device.Uid, 10, 64)
+		deviceKey := datastore.NewKey(ctx, "Device", "", id64, nil)
+		if err != nil {
+			panic(err)
+		}
+		query := datastore.NewQuery("TriggeredDevice")
+		_, err = query.GetAll(ctx, &tDevices)
+		if err != nil {
+			panic(err)
+		}
+		matchingDevices := []TriggeredDevice{}
+		for _, triggeredDevice := range tDevices {
+			if triggeredDevice.Key == deviceKey {
+				matchingDevices = append(matchingDevices, triggeredDevice)
+			}
+		}
+		var alarms []Alarm
+		query = datastore.NewQuery("Alarm")
+		_, err = query.GetAll(ctx, &alarms)
+		if err != nil {
+			panic(err)
+		}
+		var matchingAlarm Alarm
+		found := false
+		for _, alarm := range alarms {
+			for _, device := range alarm.Devices {
+				if device.Key == deviceKey {
+					matchingAlarm = alarm
+					found = true
+					break
+				}
+			}
+			if found {
+				break
+			}
+		}
+		if matchingAlarm.Triggered {
+			for _, tDevice := range matchingDevices {
+				tDevice.Defused = true
+				datastore.Put(ctx, tDevice.Key, tDevice)
+			}
+		}
 	}
 }
 
@@ -123,6 +191,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == http.MethodPost {
+		// TODO: Return existing id if same name/desc
 		var registration Device
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&registration)
@@ -143,6 +212,30 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func alarmStateHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/state" {
+		http.NotFound(w, r)
+		return
+	}
+	ctx := appengine.NewContext(r)
+	query := datastore.NewQuery("Alarm").Filter("Triggered =", true).Limit(1).KeysOnly()
+	var activeAlarm Alarm
+	keys, err := query.GetAll(ctx, &activeAlarm)
+	if err != nil {
+		panic(err)
+	}
+	if len(keys) == 0 {
+		fmt.Fprint(w, "{}")
+	} else {
+		err = datastore.Get(ctx, keys[0], &activeAlarm)
+		json, err := json.Marshal(activeAlarm)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Fprint(w, string(json))
+	}
+}
+
 func alarmHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/alarms" {
 		http.NotFound(w, r)
@@ -157,21 +250,45 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 		if alarms == nil {
 			alarms = []Alarm {}
 		}
-	
+		
 		json, err := json.Marshal(alarms)
 		if err != nil {
 			panic(err)
 		}
 		fmt.Fprint(w, string(json))
 	case http.MethodPost:
-		var alarm Alarm
+		var alarmRequest AlarmRequest
 		decoder := json.NewDecoder(r.Body)
-		err := decoder.Decode(&alarm)
+		err := decoder.Decode(&alarmRequest)
 		if err != nil {
 			panic(err)
 		}
 
 		ctx := appengine.NewContext(r)
+		alarm := Alarm{
+			TimeH: alarmRequest.TimeH,
+			TimeM: alarmRequest.TimeM,
+			Limit: alarmRequest.Limit,
+			Amount: alarmRequest.Amount,
+			Devices: []TriggeredDevice {},
+			Triggered: false}
+		for _, deviceId := range alarmRequest.Devices {
+			id64, err := strconv.ParseInt(deviceId, 10, 64)
+			key := datastore.NewKey(ctx, "Device", "", id64, nil)
+			var device Device
+			err = datastore.Get(ctx, key, &device)
+			if err != nil {
+				panic(err)
+			}
+			tDevice := TriggeredDevice{
+				Device: device,
+				Defused: false }
+			_, err = datastore.Put(ctx, datastore.NewIncompleteKey(ctx, "TriggeredDevice", nil), &tDevice)
+			if err != nil {
+				panic(err)
+			}
+			alarm.Devices = append(alarm.Devices, tDevice)
+		}
 		var put_key *datastore.Key
 		put_key, err = datastore.Put(ctx, datastore.NewIncompleteKey(ctx, "Alarm", nil), &alarm)
 		if err != nil {
@@ -183,8 +300,9 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 			Uid: strconv.FormatInt(put_key.IntID(), 10),
 			TimeH: alarm.TimeH,
 			TimeM: alarm.TimeM,
-			Sequence: alarm.Sequence,
-			Defused: false}
+			Devices: alarm.Devices,
+			Defused: false,
+			Triggered: false}
 
 		json, err := json.Marshal(alarmWithID)
 		if err != nil {

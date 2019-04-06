@@ -4,6 +4,7 @@ import android.app.TimePickerDialog
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
+import android.opengl.Visibility
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
@@ -26,10 +27,12 @@ import hr.olfo.alarmclock.util.Constants
 import kotlinx.android.synthetic.main.activity_alarm_create.*
 import java.util.*
 import hr.olfo.alarmclock.util.Util
+import org.json.JSONObject
 
 class AlarmCreate : AppCompatActivity() {
 
     lateinit var alarm: Alarm
+    lateinit var alarmDto: AlarmDto
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +45,6 @@ class AlarmCreate : AppCompatActivity() {
 
         val apiService = ApiService()
         val apiController = ApiController(apiService)
-        val gson = AlarmClock.gson
 
         if (id.isNotBlank()) {
             alarm = AlarmClock.gson.fromJson<Alarm>(preferences.getString(id, ""), Alarm::class.java)
@@ -135,30 +137,135 @@ class AlarmCreate : AppCompatActivity() {
 //                    labelSnooze.text = "3 h"
 //                    seekBarSnooze.progress = 10
 //                }
+
 //            }
 
 //            checkBoxSnoozeOnMove.isChecked = alarm.snoozeOnMove
+
+            when (alarmDto.limit) {
+                5 -> {
+                    labelLimit.text = "5 sec"
+                    seekBarLimit.progress = 0
+                }
+                10 -> {
+                    labelLimit.text = "10 sec"
+                    seekBarLimit.progress = 1
+                }
+                20 -> {
+                    labelLimit.text = "20 sec"
+                    seekBarLimit.progress = 2
+                }
+                30 -> {
+                    labelLimit.text = "30 sec"
+                    seekBarLimit.progress = 3
+                }
+                60 -> {
+                    labelLimit.text = "1 min "
+                    seekBarLimit.progress = 4
+                }
+                120 -> {
+                    labelLimit.text = "2 min"
+                    seekBarLimit.progress = 5
+                }
+                180 -> {
+                    labelLimit.text = "3 min"
+                    seekBarLimit.progress = 6
+                }
+                240 -> {
+                    labelLimit.text = "4 min"
+                    seekBarLimit.progress = 7
+                }
+                300 -> {
+                    labelLimit.text = "5 min"
+                    seekBarLimit.progress = 8
+                }
+                420 -> {
+                    labelLimit.text = "7 min"
+                    seekBarLimit.progress = 9
+                }
+                600 -> {
+                    labelLimit.text = "10 min"
+                    seekBarLimit.progress = 10
+                }
+            }
+
+            when (alarmDto.amount) {
+                1 -> {
+                    labelAmount.text = "1 dkk"
+                    seekBarAmount.progress = 0
+                }
+                2 -> {
+                    labelAmount.text = "2 dkk"
+                    seekBarAmount.progress = 1
+                }
+                5 -> {
+                    labelAmount.text = "5 dkk"
+                    seekBarAmount.progress = 2
+                }
+                10 -> {
+                    labelAmount.text = "10 dkk"
+                    seekBarAmount.progress = 3
+                }
+                20 -> {
+                    labelAmount.text = "20 dkk"
+                    seekBarAmount.progress = 4
+                }
+                50 -> {
+                    labelAmount.text = "50 dkk"
+                    seekBarAmount.progress = 5
+                }
+                100 -> {
+                    labelAmount.text = "100 dkk"
+                    seekBarAmount.progress = 6
+                }
+                200 -> {
+                    labelAmount.text = "200 dkk"
+                    seekBarAmount.progress = 7
+                }
+                500 -> {
+                    labelAmount.text = "500 dkk"
+                    seekBarAmount.progress = 8
+                }
+                1000 -> {
+                    labelAmount.text = "1000 dkk"
+                    seekBarAmount.progress = 9
+                }
+                2000 -> {
+                    labelAmount.text = "2000 dkk"
+                    seekBarAmount.progress = 10
+                }
+            }
+
+
         } else {
             alarm = Alarm()
             alarm.ringtoneUri = Util.ringtones.keys.firstOrNull()?.toString() ?: ""
             labelRingtone.text = Util.ringtones.values.firstOrNull()?.toString() ?: "NONE"
-
+            alarm.name = textName.text.toString()
             val c = Calendar.getInstance()
             alarm.timeH = c.get(Calendar.HOUR_OF_DAY)
             alarm.timeM = c.get(Calendar.MINUTE)
+            alarmDto = AlarmDto()
+            alarmDto.timeH = alarm.timeH
+            alarmDto.timeM = alarm.timeM
+            alarmDto.limit = 60
+            alarmDto.amount = 20
         }
         labelTime.text = Util.getDisplayTime(this, alarm.timeH, alarm.timeM)
 
         val devices = ArrayList<Device>()
 
         apiController.getArray("devices"){ response ->
-            if (response == null){
-                devicesText.text = "ERROR"
-            }
-            else{
+            if (response != null){
                 for (i in 0 until response.length()){
-                    devices.add(gson.fromJson(response.getJSONObject(i).toString(), Device::class.java))
+                    devices.add(AlarmClock.gson.fromJson(response.getJSONObject(i).toString(), Device::class.java))
                     val checkBox = CheckBox(this)
+                    checkBox.setOnClickListener{
+                        if (checkBox.isChecked)
+                            alarmDto.devices.add(devices[i].uid)
+                        else
+                            alarmDto.devices.remove(devices[i].uid)
+                    }
                     checkBox.text = devices[i].name
                     devicesList.addView(checkBox)
                 }
@@ -267,11 +374,117 @@ class AlarmCreate : AppCompatActivity() {
 //            alarm.snoozeOnMove = checkBoxSnoozeOnMove.isChecked
 //        }
 
+        seekBarLimit.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                when (progress) {
+                    0 -> {
+                        labelLimit.text = "5 sec"
+                        alarmDto.limit = 5
+                    }
+                    1 -> {
+                        labelLimit.text = "10 sec"
+                        alarmDto.limit = 10
+                    }
+                    2 -> {
+                        labelLimit.text = "20 sec"
+                        alarmDto.limit = 20
+                    }
+                    3 -> {
+                        labelLimit.text = "30 sec"
+                        alarmDto.limit = 30
+                    }
+                    4 -> {
+                        labelLimit.text = "1 min"
+                        alarmDto.limit = 60
+                    }
+                    5 -> {
+                        labelLimit.text = "2 min"
+                        alarmDto.limit = 120
+                    }
+                    6 -> {
+                        labelLimit.text = "3 min"
+                        alarmDto.limit = 180
+                    }
+                    7 -> {
+                        labelLimit.text = "4 min"
+                        alarmDto.limit = 240
+                    }
+                    8 -> {
+                        labelLimit.text = "5 min"
+                        alarmDto.limit = 300
+                    }
+                    9 -> {
+                        labelLimit.text = "7 min"
+                        alarmDto.limit = 420
+                    }
+                    10 -> {
+                        labelLimit.text = "10 min"
+                        alarmDto.limit = 600
+                    }
+                }
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        seekBarAmount.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                when (progress) {
+                    0 -> {
+                        labelAmount.text = "1 dkk"
+                        alarmDto.amount = 1
+                    }
+                    1 -> {
+                        labelAmount.text = "2 dkk"
+                        alarmDto.amount = 2
+                    }
+                    2 -> {
+                        labelAmount.text = "5 dkk"
+                        alarmDto.amount = 5
+                    }
+                    3 -> {
+                        labelAmount.text = "10 dkk"
+                        alarmDto.amount = 10
+                    }
+                    4 -> {
+                        labelAmount.text = "20 dkk"
+                        alarmDto.amount = 20
+                    }
+                    5 -> {
+                        labelAmount.text = "50 dkk"
+                        alarmDto.amount = 50
+                    }
+                    6 -> {
+                        labelAmount.text = "100 dkk"
+                        alarmDto.amount = 100
+                    }
+                    7 -> {
+                        labelAmount.text = "200 dkk"
+                        alarmDto.amount = 200
+                    }
+                    8 -> {
+                        labelAmount.text = "500 dkk"
+                        alarmDto.amount = 500
+                    }
+                    9 -> {
+                        labelAmount.text = "1000 dkk"
+                        alarmDto.amount = 1000
+                    }
+                    10 -> {
+                        labelAmount.text = "2000 dkk"
+                        alarmDto.amount = 2000
+                    }
+                }
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
         buttonSave.setOnClickListener {
-            val alarmData = AlarmClock.gson.toJson(alarm)
+            val alarmString = AlarmClock.gson.toJson(alarm)
             val set = preferences.getStringSet(Constants.AlarmList, mutableSetOf())
             preferences.edit().also {
-                it.putString(alarm.id, alarmData)
+                it.putString(alarm.id, alarmString)
                 set.add(alarm.id)
                 it.putStringSet(Constants.AlarmList, set)
             }.apply()
@@ -279,9 +492,15 @@ class AlarmCreate : AppCompatActivity() {
             AlarmClock.instance.doWithService {
                 it.refreshAlarms()
             }
-            var alarmDto = AlarmDto()
 
-            finish()
+            val alarmDtoJson = JSONObject(AlarmClock.gson.toJson(alarmDto))
+            apiController.post("alarms", alarmDtoJson){ response ->
+                if( response != null )
+                    finish()
+                else
+                    text.visibility = View.VISIBLE
+                    text.text = "NETWORK ERROR"
+            }
         }
     }
 
@@ -294,6 +513,8 @@ class AlarmCreate : AppCompatActivity() {
         frag.listener = TimePickerDialog.OnTimeSetListener { _, h, m ->
             alarm.timeH = h
             alarm.timeM = m
+            alarmDto.timeH = h
+            alarmDto.timeM = m
             labelTime.text = Util.getDisplayTime(this, h, m)
         }
         frag.show(supportFragmentManager, "timePicker")
