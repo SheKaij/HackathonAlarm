@@ -1,0 +1,7 @@
+import requests
+import time
+
+while(True):
+	r = requests.get("https://vinegar-container.appspot.com/triggerAlarms")
+	print(r.status_code)
+	time.sleep(1)				

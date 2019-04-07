@@ -1,7 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 
-String host = "http://vinegar-container.appspot.com/register";
+String host = "http://vinegar-container.appspot.com/";
 String ssid = "GoAway";
 String pwd = "DontComeNearMe";
 String register_payload = "{ \"name\":\"BIGFATBUTTON\",\"description\":\"oh yes you heard right fucker\"}";
@@ -62,7 +62,7 @@ String registerNode(){
   }
   // Register
   Serial.println("Register button...");
-  String post_reply = sendPostRequest(host,register_payload);
+  String post_reply = sendPostRequest(host + "register",register_payload);
   Serial.println(post_reply);
   
   return post_reply;
@@ -71,7 +71,7 @@ String registerNode(){
 void defuseAlarm(String uid){
 
   Serial.println("Defusing Alarm...");
-  String defuse_payload = "{ \"uid\":" + uid + "}";
-  String post_reply = sendPostRequest(host,defuse_payload);
+  String defuse_payload = "{ \"uid\":\"" + uid + "\"}";
+  String post_reply = sendPostRequest(host + "defuse",defuse_payload);
   Serial.println(post_reply);
 }

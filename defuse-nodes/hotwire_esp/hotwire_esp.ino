@@ -27,6 +27,7 @@ int cnt_divider = 0;
 int cnt_divider2 = 0;
 int cnt = 0;
 int failed = 0;
+int defused = 0;
 
 
 void setup() {
@@ -58,15 +59,16 @@ void loop()
       cnt_divider2 = 0;
 
       int alarm = checkAlarms();
-      if (alarm == 1 && failed==0) {
+      if (alarm == 1 && failed==0 && defused ==0) {
           running_toggle = 1;
           countdown = NUM_LEDS;
       }
-      else if(alarm == 1 && failed==1){
+      else if(alarm == 1 && (failed==1 || defused==1)){
         running_toggle=0;
       }
-      else if(alarm == 0 && failed==1){
+      else if(alarm == 0 && (failed==1 || defused==1)){
         failed =0;
+        defused=0;
         Serial.println("Resetted!");
       }
     }
@@ -74,9 +76,10 @@ void loop()
 
 
   // Defuse
-  if (digitalRead(STOP_INPUT) == 0 && running_toggle == 1) {
+  if (digitalRead(STOP_INPUT) == 0 && running_toggle == 1 && defused == 0) {
     running_toggle = 0;
     defuseAlarm(uid);
+    defused = 1;
 
     for (int i = 0; i < 5; i++) {
       for (int idx = 0; idx < NUM_LEDS; idx++) {
@@ -235,7 +238,6 @@ String registerNode() {
 }
 
 void defuseAlarm(String uid) {
-
   Serial.println("Defusing Alarm...");
   String defuse_payload = "{ \"uid\":\"" + uid + "\"}";
   String post_reply = sendPostRequest(host + "defuse", defuse_payload);
