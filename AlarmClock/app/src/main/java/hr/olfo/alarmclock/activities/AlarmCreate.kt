@@ -7,7 +7,6 @@ import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
-import android.text.InputType
 import android.text.TextWatcher
 import android.view.View
 import android.view.WindowManager
@@ -325,8 +324,6 @@ class AlarmCreate : AppCompatActivity() {
             alarm.snoozeOnMove = checkBoxSnoozeOnMove.isChecked
         }*/
 
-
-
         seekBarLimit.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 when (progress) {
@@ -396,8 +393,8 @@ class AlarmCreate : AppCompatActivity() {
             val alarmData = AlarmClock.gson.toJson(alarm)
             val set = preferences.getStringSet(Constants.AlarmList, mutableSetOf())
             preferences.edit().also {
-                it.putString(alarm.id, alarmData)
-                set.add(alarm.id)
+                it.putString(alarm.uid, alarmData)
+                set.add(alarm.uid)
                 it.putStringSet(Constants.AlarmList, set)
             }.apply()
 
@@ -413,11 +410,14 @@ class AlarmCreate : AppCompatActivity() {
             alarmDto.devices = alarm.devices
             val alarmJson = JSONObject(AlarmClock.gson.toJson(alarmDto))
             apiController.post("alarms", alarmJson){ response ->
-                if( response != null )
+                if( response != null ){
+                    alarm.uid = response.getString("uid")
                     finish()
-                else
+                }
+                else{
                     text.visibility = View.VISIBLE
                     text.text = "NETWORK ERROR"
+                }
             }
         }
     }

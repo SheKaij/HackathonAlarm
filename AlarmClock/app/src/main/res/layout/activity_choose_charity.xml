@@ -63,6 +63,14 @@
             android:text="Lungeforeningen"
             android:onClick="onRadioButtonClicked"/>
 
+        <RadioButton
+            android:id="@+id/radioCharity6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:text="Théo"
+            android:onClick="onRadioButtonClicked"/>
+
     </RadioGroup>
 
 </ScrollView>

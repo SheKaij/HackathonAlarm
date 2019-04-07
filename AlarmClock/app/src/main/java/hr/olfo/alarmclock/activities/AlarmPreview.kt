@@ -7,14 +7,11 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.widget.Button
 import hr.olfo.alarmclock.AlarmClock
 import hr.olfo.alarmclock.R
 import hr.olfo.alarmclock.data.Alarm
 import hr.olfo.alarmclock.fragments.FragmentAlarmPreview
 import hr.olfo.alarmclock.util.Constants
-import hr.olfo.alarmclock.util.Util
 
 import kotlinx.android.synthetic.main.activity_alarm_preview.*
 
@@ -73,7 +70,7 @@ class AlarmPreview : AppCompatActivity() {
 
                     val alarmData = AlarmClock.gson.toJson(alarm)
                     preferences.edit().also {
-                        it.putString(alarm.id, alarmData)
+                        it.putString(alarm.uid, alarmData)
                     }.apply()
                 }
 

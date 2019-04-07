@@ -1,13 +1,11 @@
 package hr.olfo.alarmclock.data
 
-import hr.olfo.alarmclock.AlarmClock
 import hr.olfo.alarmclock.util.Day
-import hr.olfo.alarmclock.util.Util
 import java.util.*
 import kotlin.collections.HashMap
 
 class Alarm {
-    val id = UUID.randomUUID().toString()
+    var uid = UUID.randomUUID().toString()
 
     var name: String = ""
     var enabled: Boolean = true
@@ -68,6 +66,6 @@ class Alarm {
     override fun equals(other: Any?): Boolean {
         if (other == null) return false
         if (other !is Alarm) return false
-        return id == other.id
+        return uid == other.uid
     }
 }

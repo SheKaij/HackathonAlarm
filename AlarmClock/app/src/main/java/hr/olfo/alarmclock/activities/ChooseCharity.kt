@@ -27,6 +27,8 @@ class ChooseCharity: AppCompatActivity() {
                 radioGroup.check(R.id.radioCharity4)
             "charity5" ->
                 radioGroup.check(R.id.radioCharity5)
+            "charity6" ->
+                radioGroup.check(R.id.radioCharity6)
         }
     }
 
@@ -63,6 +65,11 @@ class ChooseCharity: AppCompatActivity() {
                 R.id.radioCharity5 ->
                     if (checked) {
                         AlarmClock.charity = "charity5"
+                        finish()
+                    }
+                R.id.radioCharity6 ->
+                    if (checked) {
+                        AlarmClock.charity = "charity6"
                         finish()
                     }
             }

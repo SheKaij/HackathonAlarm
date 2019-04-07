@@ -57,7 +57,7 @@ class AlarmService : Service(), SensorEventListener {
                                 Log.i("WHAT THE FUCK",it.lastTime + "?=" + timestamp.format(Date()))
                                 if (it.lastTime != timestamp.format(Date())) {
                                     current = it
-                                    startAlarm(it.id)
+                                    startAlarm(it.uid)
                                 }
 
                             }
@@ -108,7 +108,7 @@ class AlarmService : Service(), SensorEventListener {
         preferences.edit().also {
             it.putString(id, alarmData)
         }.apply()
-        alarms.removeAll { it.id == id }
+        alarms.removeAll { it.uid == id }
         alarms += alarm
 
         val intent = Intent(this, AlarmActive::class.java)

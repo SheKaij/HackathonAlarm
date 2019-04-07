@@ -32,13 +32,13 @@
         android:textSize="45sp" />
 
     <!--<Button
-        android:id="@+id/buttonSnooze"
+        android:uid="@+uid/buttonSnooze"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Snooze alarm" />
 
     <Button
-        android:id="@+id/buttonOff"
+        android:uid="@+uid/buttonOff"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Turn off alarm" />-->

@@ -68,9 +68,9 @@ import kotlinx.android.synthetic.main.dialog_repeat.*
 //    }
 //
 //    override fun onClick(v: View?) {
-//        when (v?.id) {
-//            buttonCancel.id -> dismiss()
-//            buttonOk.id -> {
+//        when (v?.uid) {
+//            buttonCancel.uid -> dismiss()
+//            buttonOk.uid -> {
 //                (activity as AlarmCreate).setRepeat(
 //                    checkBoxMonday.isChecked,
 //                    checkBoxTuesday.isChecked,

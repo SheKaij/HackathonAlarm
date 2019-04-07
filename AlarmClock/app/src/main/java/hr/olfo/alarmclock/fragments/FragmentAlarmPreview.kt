@@ -2,7 +2,6 @@ package hr.olfo.alarmclock.fragments
 
 import android.app.Fragment
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,17 +11,22 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import hr.olfo.alarmclock.AlarmClock
 import hr.olfo.alarmclock.R
-import hr.olfo.alarmclock.activities.AlarmCreate
 import hr.olfo.alarmclock.data.Alarm
+import hr.olfo.alarmclock.network.ApiController
+import hr.olfo.alarmclock.network.ApiService
 import hr.olfo.alarmclock.util.Constants
 import hr.olfo.alarmclock.util.Util
 
 import kotlinx.android.synthetic.main.fragment_alarm_preview.*
+import org.json.JSONObject
 
 class FragmentAlarmPreview: Fragment(), PopupMenu.OnMenuItemClickListener {
 
     private var preferences: SharedPreferences? = null
     private var alarmID: String = ""
+    var alarm = Alarm()
+    val apiService = ApiService()
+    val apiController = ApiController(apiService)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_alarm_preview, container, false)
@@ -33,7 +37,7 @@ class FragmentAlarmPreview: Fragment(), PopupMenu.OnMenuItemClickListener {
         preferences = activity.applicationContext.getSharedPreferences(Constants.PreferencesAlarms, Context.MODE_PRIVATE)
 
         alarmID = arguments.getString(Constants.AlarmID, "")
-        val alarm = AlarmClock.gson.fromJson<Alarm>(preferences?.getString(alarmID, ""), Alarm::class.java)
+        alarm = AlarmClock.gson.fromJson<Alarm>(preferences?.getString(alarmID, ""), Alarm::class.java)
 
         labelName.text = alarm.name
         labelTime.text = Util.getDisplayTime(activity, alarm.timeH, alarm.timeM)
@@ -43,7 +47,7 @@ class FragmentAlarmPreview: Fragment(), PopupMenu.OnMenuItemClickListener {
             alarm.enabled = checkBoxEnable.isChecked
             val alarmData = AlarmClock.gson.toJson(alarm)
             preferences?.edit()?.also {
-                it.putString(alarm.id, alarmData)
+                it.putString(alarm.uid, alarmData)
             }?.apply()
             AlarmClock.instance.doWithService {
                 it.refreshAlarms()
@@ -68,27 +72,35 @@ class FragmentAlarmPreview: Fragment(), PopupMenu.OnMenuItemClickListener {
     override fun onMenuItemClick(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.delete -> {
+                apiController.delete("alarms?uid=" + alarm.uid){ response ->
+                    if( response != null ){
+
+                    }
+                    else{
+//                        text.visibility = View.VISIBLE
+//                        text.text = "NETWORK ERROR"
+                    }
+                }
                 val alarmList = preferences?.getStringSet(Constants.AlarmList, mutableSetOf())
                 preferences?.edit()?.also {
                     it.remove(alarmID)
                     it.putStringSet(Constants.AlarmList, alarmList?.filter{it != alarmID}?.toSet())
                 }?.apply()
                 view.visibility = View.GONE
-
             }
-            /*R.id.duplicate -> {
+            /*R.uid.duplicate -> {
                 val intent = Intent(activity, AlarmCreate::class.java)
                 val newAlarm = AlarmClock.gson.fromJson<Alarm>(preferences?.getString(alarmID, ""), Alarm::class.java).clone()
 
                 val alarmData = AlarmClock.gson.toJson(newAlarm)
                 val set = preferences?.getStringSet(Constants.AlarmList, mutableSetOf())
                 preferences?.edit()?.also {
-                    it.putString(newAlarm.id, alarmData)
-                    set?.add(newAlarm.id)
+                    it.putString(newAlarm.uid, alarmData)
+                    set?.add(newAlarm.uid)
                     it.putStringSet(Constants.AlarmList, set)
                 }?.apply()
 
-                intent.putExtra(Constants.AlarmID, newAlarm.id)
+                intent.putExtra(Constants.AlarmID, newAlarm.uid)
                 startActivity(intent)
             }*/
             else -> return false

@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--<item
-        android:id="@+id/duplicate"
+        android:uid="@+uid/duplicate"
         android:title="Duplicate" />-->
     <item
         android:id="@+id/delete"
