@@ -50,6 +50,7 @@ type AlarmRequest struct {
 	Limit int `json:"limit"`
 	Amount int `json:"amount"`
 	Devices []string `json:"devices"`
+	Uid string `json:"uid"`
 }
 
 type AlarmWithID struct {
@@ -305,6 +306,7 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Fprint(w, string(json))
 	case http.MethodPost:
+		// TODO: Fail if there is one alarm schedule for that time window
 		var alarmRequest AlarmRequest
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&alarmRequest)
@@ -352,7 +354,25 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		fmt.Fprint(w, string(json))
-	case http.MethodPut:
+	//case http.MethodPut:
 
+	case http.MethodDelete:
+		var alarmRequest AlarmRequest
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&alarmRequest)
+		if err != nil {
+			panic(err)
+		}
+
+		ctx := appengine.NewContext(r)
+		uid64, err := strconv.ParseInt(alarmRequest.Uid, 10, 64)
+		if err != nil {
+			panic(err)
+		}
+		key := datastore.NewKey(ctx, "Alarm", alarmRequest.Uid, uid64, nil)
+		err = datastore.Delete(ctx, key)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
