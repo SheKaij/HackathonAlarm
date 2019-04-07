@@ -156,8 +156,6 @@ func defuseHandler(w http.ResponseWriter, r *http.Request) {
 		ctx := appengine.NewContext(r)
 		id64, err := strconv.ParseInt(device.Uid, 10, 64)
 		deviceKey := datastore.NewKey(ctx, "Device", device.Uid, id64, nil)
-		fmt.Println("Fetching device's key: " + device.Uid)
-		fmt.Println(deviceKey)
 		if err != nil {
 			panic(err)
 		}
@@ -166,37 +164,29 @@ func defuseHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println("Devices:")
-		fmt.Println(triggeredDevicesKeys)
 		matchingDeviceIDs := []*datastore.Key {}
-		fmt.Println("Triggered devices:")
 		for _, triggeredDeviceKey := range triggeredDevicesKeys {
 			var triggeredDevice TriggeredDevice
 			err := datastore.Get(ctx, triggeredDeviceKey, &triggeredDevice)
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println("triggeredDevice's key:")
-			fmt.Println(triggeredDevice.DeviceID)
 			if triggeredDevice.DeviceID.IntID() == deviceKey.IntID() {
-				fmt.Println("yoss")
 				matchingDeviceIDs = append(matchingDeviceIDs, triggeredDeviceKey)
-				fmt.Println("Found triggeredDevice's match: " + triggeredDeviceKey.StringID())
 			}
 		}
 		var alarms []Alarm
 		query = datastore.NewQuery("Alarm")
-		alarmsKeys, err := query.GetAll(ctx, &alarms)
+		_, err = query.GetAll(ctx, &alarms)
 		if err != nil {
 			panic(err)
 		}
 		var matchingAlarm Alarm
 		found := false
-		for i, alarm := range alarms {
+		for _, alarm := range alarms {
 			for _, alarmDeviceID := range alarm.DeviceIDs {
 				for _, matchingDeviceID := range matchingDeviceIDs {
 					if alarmDeviceID.IntID() == matchingDeviceID.IntID() {
-						fmt.Println("Found triggeredDevice's alarm: " + alarmsKeys[i].StringID())
 						matchingAlarm = alarm
 						found = true
 						break
@@ -214,9 +204,7 @@ func defuseHandler(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					panic(err)
 				}
-				fmt.Print("Defusing triggeredDevice: ")
 				tDevice.Defused = true
-				fmt.Print(tDevice)
 				_, err = datastore.Put(ctx, tDeviceID, &tDevice)
 				if err != nil {
 					panic(err)
@@ -290,7 +278,7 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		ctx := appengine.NewContext(r)
-		query := datastore.NewQuery("Alarm")
+		query := datastore.NewQuery("Alarm").Filter("Processed =", false)
 		var alarms []AlarmWithID
 		keys, err := query.GetAll(ctx, &alarms)
 		if alarms == nil {
@@ -298,7 +286,6 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		for i, alarm := range alarms {
 			alarm.Uid = strconv.FormatInt(keys[i].IntID(), 10)
-			fmt.Println(alarm.Uid)
 			alarms[i] = alarm
 		}
 		
