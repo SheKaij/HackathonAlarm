@@ -27,6 +27,10 @@ class Alarm {
     var snoozeTime = 0
     var snoozeOnMove = false
 
+    var limit: Int = 0
+    var amount: Int = 0
+    var devices: ArrayList<String> = ArrayList()
+
     fun activeOnDay(day: Day) = repeat[day]
 
     fun activeOnDay(day: Int): Boolean {

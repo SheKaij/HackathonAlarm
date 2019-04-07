@@ -4,12 +4,13 @@ import android.app.TimePickerDialog
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
-import android.opengl.Visibility
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputType
 import android.text.TextWatcher
 import android.view.View
+import android.view.WindowManager
 import android.widget.*
 import hr.olfo.alarmclock.AlarmClock
 import hr.olfo.alarmclock.R
@@ -28,14 +29,16 @@ import kotlinx.android.synthetic.main.activity_alarm_create.*
 import java.util.*
 import hr.olfo.alarmclock.util.Util
 import org.json.JSONObject
+import java.lang.Exception
+import kotlin.collections.ArrayList
 
 class AlarmCreate : AppCompatActivity() {
 
     lateinit var alarm: Alarm
-    lateinit var alarmDto: AlarmDto
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        this.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
         setContentView(R.layout.activity_alarm_create)
 
         val preferences: SharedPreferences = applicationContext.getSharedPreferences(Constants.PreferencesAlarms, Context.MODE_PRIVATE)
@@ -54,95 +57,95 @@ class AlarmCreate : AppCompatActivity() {
 
             labelRingtone.text = alarm.ringtoneName
 
-            seekBarVolume.progress = alarm.volume
+            /*seekBarVolume.progress = alarm.volume
 
-//            if (alarm.repeat[Day.Monday] == true &&
-//                    alarm.repeat[Day.Tuesday] == true &&
-//                    alarm.repeat[Day.Wednesday] == true &&
-//                    alarm.repeat[Day.Thursday] == true &&
-//                    alarm.repeat[Day.Friday] == true &&
-//                    alarm.repeat[Day.Saturday] == true &&
-//                    alarm.repeat[Day.Sunday] == true) {
-//                labelRepeat.text = "Every day"
-//            } else if (alarm.repeat[Day.Monday] == true &&
-//                    alarm.repeat[Day.Tuesday] == true &&
-//                    alarm.repeat[Day.Wednesday] == true &&
-//                    alarm.repeat[Day.Thursday] == true &&
-//                    alarm.repeat[Day.Friday] == true &&
-//                    alarm.repeat[Day.Saturday] == false &&
-//                    alarm.repeat[Day.Sunday] == false) {
-//                labelRepeat.text = "Weekdays"
-//            } else if (alarm.repeat[Day.Monday] == false &&
-//                    alarm.repeat[Day.Tuesday] == false &&
-//                    alarm.repeat[Day.Wednesday] == false &&
-//                    alarm.repeat[Day.Thursday] == false &&
-//                    alarm.repeat[Day.Friday] == false &&
-//                    alarm.repeat[Day.Saturday] == true &&
-//                    alarm.repeat[Day.Sunday] == true) {
-//                labelRepeat.text = "Weekends"
-//            } else {
-//                val list = mutableListOf<String>()
-//                if (alarm.repeat[Day.Monday] == true) list += "Mon"
-//                if (alarm.repeat[Day.Tuesday] == true) list += "Tue"
-//                if (alarm.repeat[Day.Wednesday] == true) list += "Wed"
-//                if (alarm.repeat[Day.Thursday] == true) list += "Thu"
-//                if (alarm.repeat[Day.Friday] == true) list += "Fri"
-//                if (alarm.repeat[Day.Saturday] == true) list += "Sat"
-//                if (alarm.repeat[Day.Sunday] == true) list += "Sun"
-//                labelRepeat.text = list.joinToString()
-//            }
-//
-//            when (alarm.snoozeTime) {
-//                0 -> {
-//                    labelSnooze.text = "Off"
-//                    seekBarSnooze.progress = 0
-//                }
-//                1 -> {
-//                    labelSnooze.text = "1 min"
-//                    seekBarSnooze.progress = 1
-//                }
-//                5 -> {
-//                    labelSnooze.text = "5 min"
-//                    seekBarSnooze.progress = 2
-//                }
-//                10 -> {
-//                    labelSnooze.text = "10 min"
-//                    seekBarSnooze.progress = 3
-//                }
-//                15 -> {
-//                    labelSnooze.text = "15 min"
-//                    seekBarSnooze.progress = 4
-//                }
-//                20 -> {
-//                    labelSnooze.text = "20 min"
-//                    seekBarSnooze.progress = 5
-//                }
-//                25 -> {
-//                    labelSnooze.text = "25 min"
-//                    seekBarSnooze.progress = 6
-//                }
-//                30 -> {
-//                    labelSnooze.text = "30 min"
-//                    seekBarSnooze.progress = 7
-//                }
-//                60 -> {
-//                    labelSnooze.text = "1 h"
-//                    seekBarSnooze.progress = 8
-//                }
-//                120 -> {
-//                    labelSnooze.text = "2 h"
-//                    seekBarSnooze.progress = 9
-//                }
-//                180 -> {
-//                    labelSnooze.text = "3 h"
-//                    seekBarSnooze.progress = 10
-//                }
+            if (alarm.repeat[Day.Monday] == true &&
+                    alarm.repeat[Day.Tuesday] == true &&
+                    alarm.repeat[Day.Wednesday] == true &&
+                    alarm.repeat[Day.Thursday] == true &&
+                    alarm.repeat[Day.Friday] == true &&
+                    alarm.repeat[Day.Saturday] == true &&
+                    alarm.repeat[Day.Sunday] == true) {
+                labelRepeat.text = "Every day"
+            } else if (alarm.repeat[Day.Monday] == true &&
+                    alarm.repeat[Day.Tuesday] == true &&
+                    alarm.repeat[Day.Wednesday] == true &&
+                    alarm.repeat[Day.Thursday] == true &&
+                    alarm.repeat[Day.Friday] == true &&
+                    alarm.repeat[Day.Saturday] == false &&
+                    alarm.repeat[Day.Sunday] == false) {
+                labelRepeat.text = "Weekdays"
+            } else if (alarm.repeat[Day.Monday] == false &&
+                    alarm.repeat[Day.Tuesday] == false &&
+                    alarm.repeat[Day.Wednesday] == false &&
+                    alarm.repeat[Day.Thursday] == false &&
+                    alarm.repeat[Day.Friday] == false &&
+                    alarm.repeat[Day.Saturday] == true &&
+                    alarm.repeat[Day.Sunday] == true) {
+                labelRepeat.text = "Weekends"
+            } else {
+                val list = mutableListOf<String>()
+                if (alarm.repeat[Day.Monday] == true) list += "Mon"
+                if (alarm.repeat[Day.Tuesday] == true) list += "Tue"
+                if (alarm.repeat[Day.Wednesday] == true) list += "Wed"
+                if (alarm.repeat[Day.Thursday] == true) list += "Thu"
+                if (alarm.repeat[Day.Friday] == true) list += "Fri"
+                if (alarm.repeat[Day.Saturday] == true) list += "Sat"
+                if (alarm.repeat[Day.Sunday] == true) list += "Sun"
+                labelRepeat.text = list.joinToString()
+            }
 
-//            }
+            when (alarm.snoozeTime) {
+                0 -> {
+                    labelSnooze.text = "Off"
+                    seekBarSnooze.progress = 0
+                }
+                1 -> {
+                    labelSnooze.text = "1 min"
+                    seekBarSnooze.progress = 1
+                }
+                5 -> {
+                    labelSnooze.text = "5 min"
+                    seekBarSnooze.progress = 2
+                }
+                10 -> {
+                    labelSnooze.text = "10 min"
+                    seekBarSnooze.progress = 3
+                }
+                15 -> {
+                    labelSnooze.text = "15 min"
+                    seekBarSnooze.progress = 4
+                }
+                20 -> {
+                    labelSnooze.text = "20 min"
+                    seekBarSnooze.progress = 5
+                }
+                25 -> {
+                    labelSnooze.text = "25 min"
+                    seekBarSnooze.progress = 6
+                }
+                30 -> {
+                    labelSnooze.text = "30 min"
+                    seekBarSnooze.progress = 7
+                }
+                60 -> {
+                    labelSnooze.text = "1 h"
+                    seekBarSnooze.progress = 8
+                }
+                120 -> {
+                    labelSnooze.text = "2 h"
+                    seekBarSnooze.progress = 9
+                }
+                180 -> {
+                    labelSnooze.text = "3 h"
+                    seekBarSnooze.progress = 10
+                }
 
-//            checkBoxSnoozeOnMove.isChecked = alarm.snoozeOnMove
+            }
 
-            when (alarmDto.limit) {
+            checkBoxSnoozeOnMove.isChecked = alarm.snoozeOnMove*/
+
+            when (alarm.limit) {
                 5 -> {
                     labelLimit.text = "5 sec"
                     seekBarLimit.progress = 0
@@ -188,55 +191,6 @@ class AlarmCreate : AppCompatActivity() {
                     seekBarLimit.progress = 10
                 }
             }
-
-            when (alarmDto.amount) {
-                1 -> {
-                    labelAmount.text = "1 dkk"
-                    seekBarAmount.progress = 0
-                }
-                2 -> {
-                    labelAmount.text = "2 dkk"
-                    seekBarAmount.progress = 1
-                }
-                5 -> {
-                    labelAmount.text = "5 dkk"
-                    seekBarAmount.progress = 2
-                }
-                10 -> {
-                    labelAmount.text = "10 dkk"
-                    seekBarAmount.progress = 3
-                }
-                20 -> {
-                    labelAmount.text = "20 dkk"
-                    seekBarAmount.progress = 4
-                }
-                50 -> {
-                    labelAmount.text = "50 dkk"
-                    seekBarAmount.progress = 5
-                }
-                100 -> {
-                    labelAmount.text = "100 dkk"
-                    seekBarAmount.progress = 6
-                }
-                200 -> {
-                    labelAmount.text = "200 dkk"
-                    seekBarAmount.progress = 7
-                }
-                500 -> {
-                    labelAmount.text = "500 dkk"
-                    seekBarAmount.progress = 8
-                }
-                1000 -> {
-                    labelAmount.text = "1000 dkk"
-                    seekBarAmount.progress = 9
-                }
-                2000 -> {
-                    labelAmount.text = "2000 dkk"
-                    seekBarAmount.progress = 10
-                }
-            }
-
-
         } else {
             alarm = Alarm()
             alarm.ringtoneUri = Util.ringtones.keys.firstOrNull()?.toString() ?: ""
@@ -245,11 +199,8 @@ class AlarmCreate : AppCompatActivity() {
             val c = Calendar.getInstance()
             alarm.timeH = c.get(Calendar.HOUR_OF_DAY)
             alarm.timeM = c.get(Calendar.MINUTE)
-            alarmDto = AlarmDto()
-            alarmDto.timeH = alarm.timeH
-            alarmDto.timeM = alarm.timeM
-            alarmDto.limit = 60
-            alarmDto.amount = 20
+            alarm.limit = 60
+            alarm.amount = 0
         }
         labelTime.text = Util.getDisplayTime(this, alarm.timeH, alarm.timeM)
 
@@ -262,9 +213,9 @@ class AlarmCreate : AppCompatActivity() {
                     val checkBox = CheckBox(this)
                     checkBox.setOnClickListener{
                         if (checkBox.isChecked)
-                            alarmDto.devices.add(devices[i].uid)
+                            alarm.devices.add(devices[i].uid)
                         else
-                            alarmDto.devices.remove(devices[i].uid)
+                            alarm.devices.remove(devices[i].uid)
                     }
                     checkBox.text = devices[i].name
                     devicesList.addView(checkBox)
@@ -280,22 +231,22 @@ class AlarmCreate : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
 
-//        buttonRepeat.setOnClickListener {
-//            buttonRepeat.isEnabled = false
-//            val repeat = DialogRepeat()
-//            val bundle = Bundle()
-//            bundle.putBoolean(Constants.ARGUMENT_MON, alarm.repeat[Day.Monday] ?: false)
-//            bundle.putBoolean(Constants.ARGUMENT_TUE, alarm.repeat[Day.Tuesday] ?: false)
-//            bundle.putBoolean(Constants.ARGUMENT_WED, alarm.repeat[Day.Wednesday] ?: false)
-//            bundle.putBoolean(Constants.ARGUMENT_THU, alarm.repeat[Day.Thursday] ?: false)
-//            bundle.putBoolean(Constants.ARGUMENT_FRI, alarm.repeat[Day.Friday] ?: false)
-//            bundle.putBoolean(Constants.ARGUMENT_SAT, alarm.repeat[Day.Saturday] ?: false)
-//            bundle.putBoolean(Constants.ARGUMENT_SUN, alarm.repeat[Day.Sunday] ?: false)
-//            repeat.arguments = bundle
-//
-//            val fm = fragmentManager
-//            repeat.show(fm!!, "repeatDialog")
-//        }
+/*        buttonRepeat.setOnClickListener {
+            buttonRepeat.isEnabled = false
+            val repeat = DialogRepeat()
+            val bundle = Bundle()
+            bundle.putBoolean(Constants.ARGUMENT_MON, alarm.repeat[Day.Monday] ?: false)
+            bundle.putBoolean(Constants.ARGUMENT_TUE, alarm.repeat[Day.Tuesday] ?: false)
+            bundle.putBoolean(Constants.ARGUMENT_WED, alarm.repeat[Day.Wednesday] ?: false)
+            bundle.putBoolean(Constants.ARGUMENT_THU, alarm.repeat[Day.Thursday] ?: false)
+            bundle.putBoolean(Constants.ARGUMENT_FRI, alarm.repeat[Day.Friday] ?: false)
+            bundle.putBoolean(Constants.ARGUMENT_SAT, alarm.repeat[Day.Saturday] ?: false)
+            bundle.putBoolean(Constants.ARGUMENT_SUN, alarm.repeat[Day.Sunday] ?: false)
+            repeat.arguments = bundle
+
+            val fm = fragmentManager
+            repeat.show(fm!!, "repeatDialog")
+        }*/
 
         buttonRingtone.setOnClickListener {
             buttonRingtone.isEnabled = false
@@ -309,117 +260,119 @@ class AlarmCreate : AppCompatActivity() {
             ringtone.show(fm!!, "ringtoneDialog")
         }
 
-        seekBarVolume.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
+        /*seekBarVolume.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 alarm.volume = progress
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })*/
+
+        /*seekBarSnooze.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                when (progress) {
+                    0 -> {
+                        labelSnooze.text = "Off"
+                        alarm.snoozeTime = 0
+                    }
+                    1 -> {
+                        labelSnooze.text = "1 min"
+                        alarm.snoozeTime = 1
+                    }
+                    2 -> {
+                        labelSnooze.text = "5 min"
+                        alarm.snoozeTime = 5
+                    }
+                    3 -> {
+                        labelSnooze.text = "10 min"
+                        alarm.snoozeTime = 10
+                    }
+                    4 -> {
+                        labelSnooze.text = "15 min"
+                        alarm.snoozeTime = 15
+                    }
+                    5 -> {
+                        labelSnooze.text = "20 min"
+                        alarm.snoozeTime = 20
+                    }
+                    6 -> {
+                        labelSnooze.text = "25 min"
+                        alarm.snoozeTime = 25
+                    }
+                    7 -> {
+                        labelSnooze.text = "30 min"
+                        alarm.snoozeTime = 30
+                    }
+                    8 -> {
+                        labelSnooze.text = "1 h"
+                        alarm.snoozeTime = 60
+                    }
+                    9 -> {
+                        labelSnooze.text = "2 h"
+                        alarm.snoozeTime = 120
+                    }
+                    10 -> {
+                        labelSnooze.text = "3 h"
+                        alarm.snoozeTime = 180
+                    }
+                }
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-//        seekBarSnooze.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
-//            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-//                when (progress) {
-//                    0 -> {
-//                        labelSnooze.text = "Off"
-//                        alarm.snoozeTime = 0
-//                    }
-//                    1 -> {
-//                        labelSnooze.text = "1 min"
-//                        alarm.snoozeTime = 1
-//                    }
-//                    2 -> {
-//                        labelSnooze.text = "5 min"
-//                        alarm.snoozeTime = 5
-//                    }
-//                    3 -> {
-//                        labelSnooze.text = "10 min"
-//                        alarm.snoozeTime = 10
-//                    }
-//                    4 -> {
-//                        labelSnooze.text = "15 min"
-//                        alarm.snoozeTime = 15
-//                    }
-//                    5 -> {
-//                        labelSnooze.text = "20 min"
-//                        alarm.snoozeTime = 20
-//                    }
-//                    6 -> {
-//                        labelSnooze.text = "25 min"
-//                        alarm.snoozeTime = 25
-//                    }
-//                    7 -> {
-//                        labelSnooze.text = "30 min"
-//                        alarm.snoozeTime = 30
-//                    }
-//                    8 -> {
-//                        labelSnooze.text = "1 h"
-//                        alarm.snoozeTime = 60
-//                    }
-//                    9 -> {
-//                        labelSnooze.text = "2 h"
-//                        alarm.snoozeTime = 120
-//                    }
-//                    10 -> {
-//                        labelSnooze.text = "3 h"
-//                        alarm.snoozeTime = 180
-//                    }
-//                }
-//            }
-//            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-//            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-//        })
-//
-//        checkBoxSnoozeOnMove.setOnClickListener {
-//            alarm.snoozeOnMove = checkBoxSnoozeOnMove.isChecked
-//        }
+        checkBoxSnoozeOnMove.setOnClickListener {
+            alarm.snoozeOnMove = checkBoxSnoozeOnMove.isChecked
+        }*/
+
+
 
         seekBarLimit.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 when (progress) {
                     0 -> {
                         labelLimit.text = "5 sec"
-                        alarmDto.limit = 5
+                        alarm.limit = 5
                     }
                     1 -> {
                         labelLimit.text = "10 sec"
-                        alarmDto.limit = 10
+                        alarm.limit = 10
                     }
                     2 -> {
                         labelLimit.text = "20 sec"
-                        alarmDto.limit = 20
+                        alarm.limit = 20
                     }
                     3 -> {
                         labelLimit.text = "30 sec"
-                        alarmDto.limit = 30
+                        alarm.limit = 30
                     }
                     4 -> {
                         labelLimit.text = "1 min"
-                        alarmDto.limit = 60
+                        alarm.limit = 60
                     }
                     5 -> {
                         labelLimit.text = "2 min"
-                        alarmDto.limit = 120
+                        alarm.limit = 120
                     }
                     6 -> {
                         labelLimit.text = "3 min"
-                        alarmDto.limit = 180
+                        alarm.limit = 180
                     }
                     7 -> {
                         labelLimit.text = "4 min"
-                        alarmDto.limit = 240
+                        alarm.limit = 240
                     }
-                    8 -> {
+                        8 -> {
                         labelLimit.text = "5 min"
-                        alarmDto.limit = 300
+                        alarm.limit = 300
                     }
                     9 -> {
                         labelLimit.text = "7 min"
-                        alarmDto.limit = 420
+                        alarm.limit = 420
                     }
                     10 -> {
                         labelLimit.text = "10 min"
-                        alarmDto.limit = 600
+                        alarm.limit = 600
                     }
                 }
             }
@@ -427,64 +380,23 @@ class AlarmCreate : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        seekBarAmount.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                when (progress) {
-                    0 -> {
-                        labelAmount.text = "1 dkk"
-                        alarmDto.amount = 1
-                    }
-                    1 -> {
-                        labelAmount.text = "2 dkk"
-                        alarmDto.amount = 2
-                    }
-                    2 -> {
-                        labelAmount.text = "5 dkk"
-                        alarmDto.amount = 5
-                    }
-                    3 -> {
-                        labelAmount.text = "10 dkk"
-                        alarmDto.amount = 10
-                    }
-                    4 -> {
-                        labelAmount.text = "20 dkk"
-                        alarmDto.amount = 20
-                    }
-                    5 -> {
-                        labelAmount.text = "50 dkk"
-                        alarmDto.amount = 50
-                    }
-                    6 -> {
-                        labelAmount.text = "100 dkk"
-                        alarmDto.amount = 100
-                    }
-                    7 -> {
-                        labelAmount.text = "200 dkk"
-                        alarmDto.amount = 200
-                    }
-                    8 -> {
-                        labelAmount.text = "500 dkk"
-                        alarmDto.amount = 500
-                    }
-                    9 -> {
-                        labelAmount.text = "1000 dkk"
-                        alarmDto.amount = 1000
-                    }
-                    10 -> {
-                        labelAmount.text = "2000 dkk"
-                        alarmDto.amount = 2000
-                    }
+        moneyAmount.addTextChangedListener(object: TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                try {
+                    alarm.amount = Integer.parseInt(s?.toString())
+                } catch (e: Exception) {
+                    alarm.amount = 0
                 }
             }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
 
         buttonSave.setOnClickListener {
-            val alarmString = AlarmClock.gson.toJson(alarm)
+            val alarmData = AlarmClock.gson.toJson(alarm)
             val set = preferences.getStringSet(Constants.AlarmList, mutableSetOf())
             preferences.edit().also {
-                it.putString(alarm.id, alarmString)
+                it.putString(alarm.id, alarmData)
                 set.add(alarm.id)
                 it.putStringSet(Constants.AlarmList, set)
             }.apply()
@@ -493,8 +405,14 @@ class AlarmCreate : AppCompatActivity() {
                 it.refreshAlarms()
             }
 
-            val alarmDtoJson = JSONObject(AlarmClock.gson.toJson(alarmDto))
-            apiController.post("alarms", alarmDtoJson){ response ->
+            val alarmDto = AlarmDto()
+            alarmDto.timeH = alarm.timeH
+            alarmDto.timeM = alarm.timeM
+            alarmDto.limit = alarm.limit
+            alarmDto.amount = alarm.amount
+            alarmDto.devices = alarm.devices
+            val alarmJson = JSONObject(AlarmClock.gson.toJson(alarmDto))
+            apiController.post("alarms", alarmJson){ response ->
                 if( response != null )
                     finish()
                 else
@@ -513,14 +431,12 @@ class AlarmCreate : AppCompatActivity() {
         frag.listener = TimePickerDialog.OnTimeSetListener { _, h, m ->
             alarm.timeH = h
             alarm.timeM = m
-            alarmDto.timeH = h
-            alarmDto.timeM = m
             labelTime.text = Util.getDisplayTime(this, h, m)
         }
         frag.show(supportFragmentManager, "timePicker")
     }
 
-//    fun setRepeat(mon: Boolean, tue: Boolean, wed: Boolean, thu: Boolean, fri: Boolean, sat: Boolean, sun: Boolean) {
+/*//    fun setRepeat(mon: Boolean, tue: Boolean, wed: Boolean, thu: Boolean, fri: Boolean, sat: Boolean, sun: Boolean) {
 //        if (mon && tue && wed && thu && fri && sat && sun) {
 //            labelRepeat.text = "Every day"
 //        } else if (mon && tue && wed && thu && fri && !sat && !sun) {
@@ -546,7 +462,7 @@ class AlarmCreate : AppCompatActivity() {
 //        alarm.repeat[Day.Friday] = fri
 //        alarm.repeat[Day.Saturday] = sat
 //        alarm.repeat[Day.Sunday] = sun
-//    }
+//    }*/
 
     fun setRingtone(uri: Uri, name: String) {
         labelRingtone.text = name

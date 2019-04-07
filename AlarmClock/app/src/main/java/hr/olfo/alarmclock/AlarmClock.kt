@@ -50,6 +50,7 @@ class AlarmClock : Application() {
 
     companion object {
         val gson = Gson()
+        var charity = "random"
         val ServiceListeners = mutableListOf<(AlarmService.AlarmBinder) -> Unit>()
         lateinit var instance: AlarmClock
             private set

@@ -7,4 +7,9 @@
         android:id="@+id/disable_all"
         android:title="@string/disable_all_alarms"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/choose_charity"
+        android:title="@string/choose_charity"
+        app:showAsAction="never" />
 </menu>

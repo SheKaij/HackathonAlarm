@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
@@ -102,41 +101,41 @@
 
             </LinearLayout>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_weight="1"
-                android:background="?android:attr/listDivider" />
+            <!--<View-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="1dp"-->
+                <!--android:layout_weight="1"-->
+                <!--android:background="?android:attr/listDivider" />-->
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_margin="0dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:padding="0dp">
+            <!--<LinearLayout-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:layout_margin="0dp"-->
+                <!--android:layout_weight="1"-->
+                <!--android:gravity="center"-->
+                <!--android:orientation="horizontal"-->
+                <!--android:padding="0dp">-->
 
-                <ImageView
-                    android:id="@+id/imageView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="0dp"
-                    android:padding="0dp"
-                    android:paddingStart="10dp"
-                    app:srcCompat="@drawable/ic_volume" />
+                <!--<ImageView-->
+                    <!--android:id="@+id/imageView"-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:layout_margin="0dp"-->
+                    <!--android:padding="0dp"-->
+                    <!--android:paddingStart="10dp"-->
+                    <!--app:srcCompat="@drawable/ic_volume" />-->
 
-                <SeekBar
-                    android:id="@+id/seekBarVolume"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="0dp"
-                    android:layout_weight="1"
-                    android:max="100"
-                    android:padding="0dp"
-                    android:progress="100" />
+                <!--<SeekBar-->
+                    <!--android:id="@+id/seekBarVolume"-->
+                    <!--android:layout_width="0dp"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:layout_margin="0dp"-->
+                    <!--android:layout_weight="1"-->
+                    <!--android:max="100"-->
+                    <!--android:padding="0dp"-->
+                    <!--android:progress="100" />-->
 
-            </LinearLayout>
+            <!--</LinearLayout>-->
 
         </LinearLayout>
 
@@ -255,54 +254,29 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:orientation="vertical"
-            android:theme="@style/Widget.Group">
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
 
-            <LinearLayout
+            <EditText
+                android:id="@+id/moneyAmount"
+                android:layout_width="304dp"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:cursorVisible="true"
+                android:hint="0"
+                android:inputType="numberSigned"
+                android:textAlignment="center"
+                android:textSize="31sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Amount"
-                    android:textAlignment="viewStart"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:theme="@style/AppTheme" />
-
-                <TextView
-                    android:id="@+id/labelAmount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|end"
-                    android:layout_weight="1"
-                    android:text="20 dkk"
-                    android:textAlignment="viewEnd"
-                    android:theme="@style/AppTheme" />
-
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_weight="1"
-                android:background="?android:attr/listDivider" />
-
-            <SeekBar
-                android:id="@+id/seekBarAmount"
-                style="@style/Widget.AppCompat.SeekBar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:max="10"
-                android:progress="4"/>
-
+                android:gravity="center"
+                android:text="DKK"
+                android:textAlignment="center"
+                android:textStyle="normal" />
         </LinearLayout>
 
         <LinearLayout

@@ -58,11 +58,11 @@ class FragmentAlarmPreview: Fragment(), PopupMenu.OnMenuItemClickListener {
             pm.show()
         }
 
-        view.setOnClickListener {
+        /*view.setOnClickListener {
             val intent = Intent(activity, AlarmCreate::class.java)
             intent.putExtra(Constants.AlarmID, arguments.getString(Constants.AlarmID, ""))
             startActivity(intent)
-        }
+        }*/
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
@@ -76,7 +76,7 @@ class FragmentAlarmPreview: Fragment(), PopupMenu.OnMenuItemClickListener {
                 view.visibility = View.GONE
 
             }
-            R.id.duplicate -> {
+            /*R.id.duplicate -> {
                 val intent = Intent(activity, AlarmCreate::class.java)
                 val newAlarm = AlarmClock.gson.fromJson<Alarm>(preferences?.getString(alarmID, ""), Alarm::class.java).clone()
 
@@ -90,7 +90,7 @@ class FragmentAlarmPreview: Fragment(), PopupMenu.OnMenuItemClickListener {
 
                 intent.putExtra(Constants.AlarmID, newAlarm.id)
                 startActivity(intent)
-            }
+            }*/
             else -> return false
         }
         return true
