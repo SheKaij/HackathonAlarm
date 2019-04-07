@@ -62,6 +62,7 @@ func triggerAlarms(w http.ResponseWriter, r *http.Request) {
 			} else {
 				fmt.Println("Not defusing, triggering")
 				alarm.Triggered = true
+				alarm.Processed = true
 				_, err := datastore.Put(ctx, alarmKey, &alarm)
 				if err != nil {
 					//http.Error(w, err.Error(), 500)
