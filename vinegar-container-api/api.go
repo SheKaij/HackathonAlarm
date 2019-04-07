@@ -312,7 +312,6 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		// TODO: Fail if there is one alarm schedule for that time window
 		ctx := appengine.NewContext(r)
 		query := datastore.NewQuery("Alarm").Filter("TimeH =", alarmRequest.TimeH)
 		var potentialClashes []Alarm
@@ -368,19 +367,15 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 	//case http.MethodPut:
 
 	case http.MethodDelete:
-		var alarmRequest AlarmRequest
-		decoder := json.NewDecoder(r.Body)
-		err := decoder.Decode(&alarmRequest)
-		if err != nil {
-			panic(err)
-		}
-
 		ctx := appengine.NewContext(r)
-		uid64, err := strconv.ParseInt(alarmRequest.Uid, 10, 64)
+		if r.Form.Get("uid") == "" {
+			return
+		}
+		uid64, err := strconv.ParseInt(r.FormValue("uid"), 10, 64)
 		if err != nil {
 			panic(err)
 		}
-		key := datastore.NewKey(ctx, "Alarm", alarmRequest.Uid, uid64, nil)
+		key := datastore.NewKey(ctx, "Alarm", r.FormValue("uid"), uid64, nil)
 		err = datastore.Delete(ctx, key)
 		if err != nil {
 			panic(err)
