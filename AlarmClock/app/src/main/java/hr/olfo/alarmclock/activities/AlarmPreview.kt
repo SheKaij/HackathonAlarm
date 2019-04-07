@@ -82,6 +82,10 @@ class AlarmPreview : AppCompatActivity() {
                     it.refreshAlarms()
                 }
             }
+            R.id.choose_charity -> {
+                val intent = Intent(this, ChooseCharity::class.java)
+                startActivity(intent)
+            }
             else -> return false
         }
         return true
