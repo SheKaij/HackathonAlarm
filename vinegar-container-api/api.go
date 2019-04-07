@@ -146,9 +146,6 @@ func defuseHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	/* BUG BUG BUG BUG BUG BUG BUG PUG LOL HAHA
-	 * Devices don't seem to be fetched with their key oh nooo 
-	 */
 	if r.Method == http.MethodPost {
 		var device DeviceWithID
 		decoder := json.NewDecoder(r.Body)
