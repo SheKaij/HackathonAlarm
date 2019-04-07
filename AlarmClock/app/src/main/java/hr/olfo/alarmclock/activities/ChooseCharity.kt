@@ -23,15 +23,17 @@ class ChooseCharity: AppCompatActivity() {
                 radioGroup.check(R.id.radioCharity2)
             "charity3" ->
                 radioGroup.check(R.id.radioCharity3)
+            "charity4" ->
+                radioGroup.check(R.id.radioCharity4)
+            "charity5" ->
+                radioGroup.check(R.id.radioCharity5)
         }
     }
 
     fun onRadioButtonClicked(view: View) {
         if (view is RadioButton) {
-            // Is the button now checked?
             val checked = view.isChecked
 
-            // Check which radio button was clicked
             when (view.getId()) {
                 R.id.radioRandom ->
                     if (checked) {
@@ -51,6 +53,16 @@ class ChooseCharity: AppCompatActivity() {
                 R.id.radioCharity3 ->
                     if (checked) {
                         AlarmClock.charity = "charity3"
+                        finish()
+                    }
+                R.id.radioCharity4 ->
+                    if (checked) {
+                        AlarmClock.charity = "charity4"
+                        finish()
+                    }
+                R.id.radioCharity5 ->
+                    if (checked) {
+                        AlarmClock.charity = "charity5"
                         finish()
                     }
             }
