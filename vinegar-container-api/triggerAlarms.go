@@ -13,7 +13,7 @@ func triggerAlarms(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(currentTime)
 
 	ctx := appengine.NewContext(r)
-	query := datastore.NewQuery("Alarm").Filter("Defused = ", false).KeysOnly()
+	query := datastore.NewQuery("Alarm").Filter("Defused = ", false).Filter("Processed = ", false).KeysOnly()
 	keys, err := query.GetAll(ctx, nil)
 	if err != nil {
 		panic(err)
@@ -30,8 +30,21 @@ func triggerAlarms(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-
-		if alarm.TimeH == currentTime.Hour() && alarm.TimeM <= currentTime.Minute() && currentTime.Minute() <= (alarm.TimeM + alarm.Limit) {
+		
+		alarm_timestamp := alarm.TimeH*60 + alarm.TimeM
+		current_timestamp := (currentTime.Hour()+2)*60 + currentTime.Minute() 
+		fmt.Println(alarm.TimeH, alarm.TimeM)
+		fmt.Println(currentTime.Hour()+2, currentTime.Minute())
+		fmt.Println(alarm.Triggered)
+		if !alarm.Triggered && current_timestamp >=  alarm_timestamp {
+			fmt.Println("Not defusing, triggering")
+			alarm.Triggered = true
+			_, err := datastore.Put(ctx, alarmKey, &alarm)
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+				panic(err)
+			}
+		} else if alarm.Triggered && current_timestamp >= alarm_timestamp && current_timestamp <= (alarm_timestamp + alarm.Limit) {
 			defuse := true
 			for _, deviceID := range alarm.DeviceIDs {
 				fmt.Println("DeviceID: " + deviceID.String())
@@ -54,22 +67,21 @@ func triggerAlarms(w http.ResponseWriter, r *http.Request) {
 				alarm.Defused = true
 				_, err := datastore.Put(ctx, alarmKey, &alarm)
 				if err != nil {
-					//http.Error(w, err.Error(), 500)
+					http.Error(w, err.Error(), 500)
 					panic(err)
 				}
 			} else {
-				fmt.Println("Not defusing, triggering")
-				alarm.Triggered = true
-				alarm.Processed = true
-				_, err := datastore.Put(ctx, alarmKey, &alarm)
-				if err != nil {
-					//http.Error(w, err.Error(), 500)
-					panic(err)
-				}
+
 			}
-		} else {
-			//pay()
+		} else if alarm.Triggered && !alarm.Defused {
+			pay(float32(alarm.Amount))
 			fmt.Println("Paying")
+			alarm.Processed = true
+			_, err := datastore.Put(ctx, alarmKey, &alarm)
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+				panic(err)
+			}
 		}
 	}
 }
