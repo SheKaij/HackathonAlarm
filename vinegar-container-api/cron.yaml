@@ -1,0 +1,4 @@
+cron:
+  - description: "tic toc"
+    url: /triggerAlarms
+    schedule: every 1 mins

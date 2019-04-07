@@ -22,14 +22,8 @@ type Device struct {
 	Description string `json:"description"`
 }
 
-type TriggeredDeviceWithKey struct {
-	Device Device 
-	Defused bool
-	Key *datastore.Key `datastore:"__key__"`
-}
-
 type TriggeredDevice struct {
-	Device Device 
+	DeviceID *datastore.Key 
 	Defused bool
 }
 
@@ -39,25 +33,15 @@ type DeviceWithID struct {
 	Description string `json:"description"`
 }
 
-type AlarmWithKey struct {
-	TimeH int `json:"timeH"`
-	TimeM int `json:"timeM"`
-	Limit int `json:"limit"`
-	Amount int `json:"amount"`
-	Defused bool `json:"defused"`
-	Devices []TriggeredDeviceWithKey `json:"devices"`
-	Triggered bool `json:"triggered"`
-	Key *datastore.Key `datastore:"__key__"`
-}
-
 type Alarm struct {
 	TimeH int `json:"timeH"`
 	TimeM int `json:"timeM"`
 	Limit int `json:"limit"`
 	Amount int `json:"amount"`
 	Defused bool `json:"defused"`
-	Devices []TriggeredDevice`json:"devices"`
+	DeviceIDs []*datastore.Key `json:"deviceIDs"`
 	Triggered bool `json:"triggered"`
+	Processed bool `json:"processed"`
 }
 
 type AlarmRequest struct {
@@ -72,7 +56,7 @@ type AlarmWithID struct {
 	Uid string `json:"uid"`
 	TimeH int `json:"timeH"`
 	TimeM int `json:"timeM"`
-	Devices []TriggeredDevice `json:"devices"`
+	DeviceIDs []*datastore.Key `json:"deviceIDs"`
 	Defused bool `json:"defused"`
 	Triggered bool `json:"triggered"`
 }
@@ -85,6 +69,7 @@ func main() {
 	http.HandleFunc("/alarms", alarmHandler)
 	http.HandleFunc("/state", alarmStateHandler)
 	http.HandleFunc("/triggerAlarms", triggerAlarms)
+	http.HandleFunc("/clear", clear)
 
 	appengine.Main()
 	port := os.Getenv("PORT")
@@ -97,6 +82,31 @@ func main() {
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }
 
+
+func clear(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+	query := datastore.NewQuery("Alarm").KeysOnly()
+	keys, err := query.GetAll(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
+	datastore.DeleteMulti(ctx, keys)
+
+	query = datastore.NewQuery("Device").KeysOnly()
+	keys, err = query.GetAll(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
+	datastore.DeleteMulti(ctx, keys)
+
+	query = datastore.NewQuery("TriggeredDevice").KeysOnly()
+	keys, err = query.GetAll(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
+	datastore.DeleteMulti(ctx, keys)
+	fmt.Fprint(w, "yo                       we cool bro")
+}
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
@@ -135,6 +145,9 @@ func defuseHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+	/* BUG BUG BUG BUG BUG BUG BUG PUG LOL HAHA
+	 * Devices don't seem to be fetched with their key oh nooo 
+	 */
 	if r.Method == http.MethodPost {
 		var device DeviceWithID
 		decoder := json.NewDecoder(r.Body)
@@ -143,47 +156,73 @@ func defuseHandler(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 		ctx := appengine.NewContext(r)
-		var tDevices []TriggeredDeviceWithKey
 		id64, err := strconv.ParseInt(device.Uid, 10, 64)
-		deviceKey := datastore.NewKey(ctx, "Device", "", id64, nil)
+		deviceKey := datastore.NewKey(ctx, "Device", device.Uid, id64, nil)
+		fmt.Println("Fetching device's key: " + device.Uid)
+		fmt.Println(deviceKey)
 		if err != nil {
 			panic(err)
 		}
-		query := datastore.NewQuery("TriggeredDevice")
-		_, err = query.GetAll(ctx, &tDevices)
+		query := datastore.NewQuery("TriggeredDevice").KeysOnly()
+		triggeredDevicesKeys, err := query.GetAll(ctx, nil)
 		if err != nil {
 			panic(err)
 		}
-		matchingDevices := []TriggeredDeviceWithKey{}
-		for _, triggeredDevice := range tDevices {
-			if triggeredDevice.Key == deviceKey {
-				matchingDevices = append(matchingDevices, triggeredDevice)
+		fmt.Println("Devices:")
+		fmt.Println(triggeredDevicesKeys)
+		matchingDeviceIDs := []*datastore.Key {}
+		fmt.Println("Triggered devices:")
+		for _, triggeredDeviceKey := range triggeredDevicesKeys {
+			var triggeredDevice TriggeredDevice
+			err := datastore.Get(ctx, triggeredDeviceKey, &triggeredDevice)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println("triggeredDevice's key:")
+			fmt.Println(triggeredDevice.DeviceID)
+			if triggeredDevice.DeviceID.IntID() == deviceKey.IntID() {
+				fmt.Println("yoss")
+				matchingDeviceIDs = append(matchingDeviceIDs, triggeredDeviceKey)
+				fmt.Println("Found triggeredDevice's match: " + triggeredDeviceKey.StringID())
 			}
 		}
-		var alarms []AlarmWithKey
+		var alarms []Alarm
 		query = datastore.NewQuery("Alarm")
-		_, err = query.GetAll(ctx, &alarms)
+		alarmsKeys, err := query.GetAll(ctx, &alarms)
 		if err != nil {
 			panic(err)
 		}
-		var matchingAlarm AlarmWithKey
+		var matchingAlarm Alarm
 		found := false
-		for _, alarm := range alarms {
-			for _, device := range alarm.Devices {
-				if device.Key == deviceKey {
-					matchingAlarm = alarm
-					found = true
-					break
+		for i, alarm := range alarms {
+			for _, alarmDeviceID := range alarm.DeviceIDs {
+				for _, matchingDeviceID := range matchingDeviceIDs {
+					if alarmDeviceID.IntID() == matchingDeviceID.IntID() {
+						fmt.Println("Found triggeredDevice's alarm: " + alarmsKeys[i].StringID())
+						matchingAlarm = alarm
+						found = true
+						break
+					}
 				}
-			}
-			if found {
-				break
-			}
+				if found {
+					break}
+				}
 		}
+
 		if matchingAlarm.Triggered {
-			for _, tDevice := range matchingDevices {
+			for _, tDeviceID := range matchingDeviceIDs {
+				var tDevice TriggeredDevice
+				err := datastore.Get(ctx, tDeviceID, &tDevice)
+				if err != nil {
+					panic(err)
+				}
+				fmt.Print("Defusing triggeredDevice: ")
 				tDevice.Defused = true
-				datastore.Put(ctx, tDevice.Key, tDevice)
+				fmt.Print(tDevice)
+				_, err = datastore.Put(ctx, tDeviceID, &tDevice)
+				if err != nil {
+					panic(err)
+				}
 			}
 		}
 	}
@@ -227,7 +266,7 @@ func alarmStateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := appengine.NewContext(r)
-	query := datastore.NewQuery("Alarm").Filter("Triggered =", true).Limit(1).KeysOnly()
+	query := datastore.NewQuery("Alarm").Filter("Triggered =", true).Filter("Processed = ", false).Limit(1).KeysOnly()
 	var activeAlarm Alarm
 	keys, err := query.GetAll(ctx, &activeAlarm)
 	if err != nil {
@@ -279,27 +318,21 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 			TimeM: alarmRequest.TimeM,
 			Limit: alarmRequest.Limit,
 			Amount: alarmRequest.Amount,
-			Devices: []TriggeredDevice{},
+			DeviceIDs: []*datastore.Key {},
 			Triggered: false}
 		for _, deviceId := range alarmRequest.Devices {
 			id64, err := strconv.ParseInt(deviceId, 10, 64)
 			key := datastore.NewKey(ctx, "Device", "", id64, nil)
-			var device Device
-			err = datastore.Get(ctx, key, &device)
-			if err != nil {
-				panic(err)
-			}
 			tDevice := TriggeredDevice{
-				Device: device,
+				DeviceID: key,
 				Defused: false }
-			_, err = datastore.Put(ctx, datastore.NewIncompleteKey(ctx, "TriggeredDevice", nil), &tDevice)
+			tDeviceKey, err := datastore.Put(ctx, datastore.NewIncompleteKey(ctx, "TriggeredDevice", nil), &tDevice)
 			if err != nil {
 				panic(err)
 			}
-			alarm.Devices = append(alarm.Devices, tDevice)
+			alarm.DeviceIDs = append(alarm.DeviceIDs, tDeviceKey)
 		}
-		var put_key *datastore.Key
-		put_key, err = datastore.Put(ctx, datastore.NewIncompleteKey(ctx, "Alarm", nil), &alarm)
+		put_key, err := datastore.Put(ctx, datastore.NewIncompleteKey(ctx, "Alarm", nil), &alarm)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
@@ -309,7 +342,7 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 			Uid: strconv.FormatInt(put_key.IntID(), 10),
 			TimeH: alarm.TimeH,
 			TimeM: alarm.TimeM,
-			Devices: alarm.Devices,
+			DeviceIDs: alarm.DeviceIDs,
 			Defused: false,
 			Triggered: false}
 
