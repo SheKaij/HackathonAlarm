@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:text="Nazis"
+            android:text="Kræftens Bekæmpelse"
             android:onClick="onRadioButtonClicked"/>
 
         <RadioButton
@@ -36,7 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:text="Retarded children"
+            android:text="Hjerte Foreningen"
             android:onClick="onRadioButtonClicked"/>
 
         <RadioButton
@@ -44,7 +44,23 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:text="Theo"
+            android:text="Muskelsvindfonden"
+            android:onClick="onRadioButtonClicked"/>
+
+        <RadioButton
+            android:id="@+id/radioCharity4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:text="Børnenes Kontor"
+            android:onClick="onRadioButtonClicked"/>
+
+        <RadioButton
+            android:id="@+id/radioCharity5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:text="Lungeforeningen"
             android:onClick="onRadioButtonClicked"/>
 
     </RadioGroup>
