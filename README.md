@@ -1,3 +1,9 @@
+# NeverSnoozeAgain
+
+
+![meme](gallery.jpg)
+
+
 ## Inspiration
 "5 more minutes Mom!" 
 Waking up is hard and when you're supposed to study it is even harder.
