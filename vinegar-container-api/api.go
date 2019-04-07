@@ -41,6 +41,7 @@ type Alarm struct {
 	Defused bool `json:"defused"`
 	DeviceIDs []*datastore.Key `json:"deviceIDs"`
 	Triggered bool `json:"triggered"`
+	Processed bool `json:"processed"`
 }
 
 type AlarmRequest struct {
@@ -265,7 +266,7 @@ func alarmStateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := appengine.NewContext(r)
-	query := datastore.NewQuery("Alarm").Filter("Triggered =", true).Limit(1).KeysOnly()
+	query := datastore.NewQuery("Alarm").Filter("Triggered =", true).Filter("Processed = ", false).Limit(1).KeysOnly()
 	var activeAlarm Alarm
 	keys, err := query.GetAll(ctx, &activeAlarm)
 	if err != nil {

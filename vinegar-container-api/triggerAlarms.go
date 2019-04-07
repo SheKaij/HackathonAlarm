@@ -31,9 +31,7 @@ func triggerAlarms(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		//if !alarm.Defused && alarm.TimeH == currentTime.Hour() && alarm.TimeM >= currentTime.Minute()+1 {
-		if true {
-			fmt.Println("Setting defused to true")
+		if alarm.TimeH == currentTime.Hour() && alarm.TimeM <= currentTime.Minute() && currentTime.Minute() <= (alarm.TimeM + alarm.Limit) {
 			defuse := true
 			for _, deviceID := range alarm.DeviceIDs {
 				fmt.Println("DeviceID: " + deviceID.String())
@@ -62,6 +60,7 @@ func triggerAlarms(w http.ResponseWriter, r *http.Request) {
 			} else {
 				fmt.Println("Not defusing, triggering")
 				alarm.Triggered = true
+				alarm.Processed = true
 				_, err := datastore.Put(ctx, alarmKey, &alarm)
 				if err != nil {
 					//http.Error(w, err.Error(), 500)
