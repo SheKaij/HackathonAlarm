@@ -28,6 +28,7 @@ import kotlinx.android.synthetic.main.activity_alarm_create.*
 import java.util.*
 import hr.olfo.alarmclock.util.Util
 import org.json.JSONObject
+import java.lang.Exception
 import kotlin.collections.ArrayList
 
 class AlarmCreate : AppCompatActivity() {
@@ -379,13 +380,14 @@ class AlarmCreate : AppCompatActivity() {
 
         moneyAmount.addTextChangedListener(object: TextWatcher {
             override fun afterTextChanged(s: Editable?) {
-
+                try {
+                    alarm.amount = Integer.parseInt(s?.toString())
+                } catch (e: Exception) {
+                    alarm.amount = 0
+                }
             }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val money = (s?.toString()?.split(' ') ?: listOf("0"))[0]
-                alarm.amount = Integer.parseInt(money)
-            }
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
 
         buttonSave.setOnClickListener {
