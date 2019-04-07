@@ -267,7 +267,7 @@ func alarmStateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := appengine.NewContext(r)
-	query := datastore.NewQuery("Alarm").Filter("Triggered =", true).Limit(1).KeysOnly()
+	query := datastore.NewQuery("Alarm").Filter("Triggered =", true).Filter("Defused =", false).Limit(1).KeysOnly()
 	var activeAlarm Alarm
 	keys, err := query.GetAll(ctx, &activeAlarm)
 	if err != nil {
@@ -306,15 +306,26 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Fprint(w, string(json))
 	case http.MethodPost:
-		// TODO: Fail if there is one alarm schedule for that time window
 		var alarmRequest AlarmRequest
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&alarmRequest)
 		if err != nil {
 			panic(err)
 		}
-
+		// TODO: Fail if there is one alarm schedule for that time window
 		ctx := appengine.NewContext(r)
+		query := datastore.NewQuery("Alarm").Filter("TimeH =", alarmRequest.TimeH)
+		var potentialClashes []Alarm
+		_, err = query.GetAll(ctx, &potentialClashes)
+		if err != nil {
+			panic(err)
+		}
+		for _, potentialClash := range potentialClashes {
+			if !potentialClash.Triggered && potentialClash.TimeM >= alarmRequest.TimeM && potentialClash.TimeM <= (alarmRequest.TimeM + alarmRequest.Limit) {
+				http.Error(w, "This alarm is clashing with another one. Please select a different time.", 500)
+				return
+			}
+		}
 		alarm := Alarm{
 			TimeH: alarmRequest.TimeH,
 			TimeM: alarmRequest.TimeM,
