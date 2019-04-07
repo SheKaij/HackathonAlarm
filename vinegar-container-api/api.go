@@ -291,10 +291,15 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		ctx := appengine.NewContext(r)
 		query := datastore.NewQuery("Alarm")
-		var alarms []Alarm
-		_, err := query.GetAll(ctx, &alarms)
+		var alarms []AlarmWithID
+		keys, err := query.GetAll(ctx, &alarms)
 		if alarms == nil {
-			alarms = []Alarm {}
+			alarms = []AlarmWithID {}
+		}
+		for i, alarm := range alarms {
+			alarm.Uid = strconv.FormatInt(keys[i].IntID(), 10)
+			fmt.Println(alarm.Uid)
+			alarms[i] = alarm
 		}
 		
 		json, err := json.Marshal(alarms)
