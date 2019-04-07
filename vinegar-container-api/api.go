@@ -364,13 +364,8 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		fmt.Fprint(w, string(json))
-	//case http.MethodPut:
-
 	case http.MethodDelete:
 		ctx := appengine.NewContext(r)
-		if r.Form.Get("uid") == "" {
-			return
-		}
 		uid64, err := strconv.ParseInt(r.FormValue("uid"), 10, 64)
 		if err != nil {
 			panic(err)
@@ -378,7 +373,7 @@ func alarmHandler(w http.ResponseWriter, r *http.Request) {
 		key := datastore.NewKey(ctx, "Alarm", r.FormValue("uid"), uid64, nil)
 		err = datastore.Delete(ctx, key)
 		if err != nil {
-			panic(err)
+			http.Error(w, "There is no alarm for the given uid", 500)
 		}
 	}
 }
