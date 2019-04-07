@@ -74,13 +74,13 @@ func triggerAlarms(w http.ResponseWriter, r *http.Request) {
 
 			}
 		} else if alarm.Triggered && !alarm.Defused {
-			//pay()
+			pay(float32(alarm.Amount))
 			fmt.Println("Paying")
 			alarm.Processed = true
 			_, err := datastore.Put(ctx, alarmKey, &alarm)
 			if err != nil {
 				http.Error(w, err.Error(), 500)
-				//panic(err)
+				panic(err)
 			}
 		}
 	}
